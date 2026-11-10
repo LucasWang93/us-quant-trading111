@@ -218,3 +218,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# usquant: downloaded market data and backtest outputs are reproducible artifacts
+data/cache/
+results/
+# secrets (API keys / broker credentials) must never be committed
+.env
+*.env
+secrets*.yaml
