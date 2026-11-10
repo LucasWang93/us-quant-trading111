@@ -61,6 +61,10 @@ class Provenance:
     has_splits: bool = False
     original_file: str | None = None
     original_sha256: str | None = None
+    #: The on-disk file the backtest actually read, and its SHA-256. Exact
+    #: reproduction of a run requires a file with this hash.
+    cache_file: str | None = None
+    cache_sha256: str | None = None
     notes: list[str] = field(default_factory=list)
 
     def describe_frame(self, df: pd.DataFrame) -> "Provenance":

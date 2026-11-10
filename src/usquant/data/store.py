@@ -9,7 +9,7 @@ from pathlib import Path
 import pandas as pd
 
 from usquant.data.base import DataLike, DataProvider, slice_dates, to_timestamp, validate_ohlcv
-from usquant.data.provenance import Provenance, read_provenance, write_provenance
+from usquant.data.provenance import Provenance, file_sha256, read_provenance, write_provenance
 
 log = logging.getLogger(__name__)
 
@@ -20,7 +20,10 @@ class DataStore:
     ``load`` serves from cache when the cached file covers the requested range
     (within ``tolerance_days`` at either end, to allow for weekends/holidays) and
     otherwise re-downloads the full requested range and overwrites the cache.
-    Every downloaded file gets a ``<SYMBOL>.provenance.json`` sidecar.
+    Every downloaded file gets a ``<SYMBOL>.provenance.json`` sidecar holding the
+    file's SHA-256. Callers always receive the data as re-read from disk, so a run
+    that downloads and a later run served from the same cache file see identical
+    numbers.
     """
 
     #: Providers whose data is already on disk and is never copied into the cache.
@@ -89,21 +92,34 @@ class DataStore:
             df = provider.fetch(symbol, s, e)
             return df, provider.provenance(symbol, df, s, e)
 
+        path = self.path(provider, symbol)
         cached = None if refresh else self.read(provider, symbol)
         if cached is not None and self._covers(cached, s, e):
             log.debug("cache hit %s/%s", provider.name, symbol)
             df = slice_dates(cached, s, e)
-            prov = read_provenance(self.path(provider, symbol)) or Provenance(
+            prov = read_provenance(path) or Provenance(
                 symbol=symbol, source=provider.name, vendor=f"{provider.name} (cache without provenance record)",
                 price_basis="unknown", retrieved_utc="unknown",
             )
-            prov.notes = [f"served from cache {self.path(provider, symbol)}", *prov.notes]
+            current = file_sha256(path)
+            if prov.cache_sha256 is not None and prov.cache_sha256 != current:
+                log.warning("%s: cache file %s changed since it was downloaded", symbol, path)
+                prov.notes.insert(0, f"WARNING: cache file modified after download (recorded {prov.cache_sha256[:16]}, "
+                                     f"now {current[:16]})")
+            prov.cache_file, prov.cache_sha256 = str(path), current
+            prov.notes = [f"served from cache {path}", *prov.notes]
             prov.describe_frame(df)
             return df, prov
         log.info("fetching %s from %s", symbol, provider.name)
-        df = provider.fetch(symbol, s, e)
-        prov = provider.provenance(symbol, df, s, e)
-        path = self.write(provider, symbol, df)
+        fetched = provider.fetch(symbol, s, e)
+        prov = provider.provenance(symbol, fetched, s, e)
+        self.write(provider, symbol, fetched)
+        # Return what is on disk, not the in-memory download: the cache is written at
+        # fixed precision, so using the re-read frame makes the first run and every later
+        # cache-served run bit-identical (same data checksum, same results).
+        df = slice_dates(self.read(provider, symbol), s, e)
+        prov.describe_frame(df)
+        prov.cache_file, prov.cache_sha256 = str(path), file_sha256(path)
         write_provenance(path, prov)
         return df, prov
 

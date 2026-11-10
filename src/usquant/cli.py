@@ -6,6 +6,7 @@ Examples::
     usquant backtest --config configs/ma_crossover_spy_qqq.yaml
     usquant backtest --config configs/momentum_spy_qqq.yaml --provider synthetic
     usquant study --config configs/study_spy_qqq.yaml
+    usquant reproduce --summary docs/results/spy_qqq_study/summary.json
     usquant import-csv --file ~/Downloads/SPY.csv --symbol SPY --source "Vendor X export"
 """
 
@@ -67,6 +68,21 @@ def _cmd_study(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_reproduce(args: argparse.Namespace) -> int:
+    from usquant.reproduce import reproduce
+
+    rep, _ = reproduce(args.summary, cache_dir=args.cache_dir, refresh=args.refresh, rtol=args.rtol, atol=args.atol)
+    print(rep.format())
+    if not rep.numbers_match:
+        print("RESULT: numbers do NOT reproduce")
+        return 1
+    if not rep.inputs_match:
+        print("RESULT: numbers agree within tolerance, but the input data differ from the committed run")
+        return 0 if args.refresh or args.allow_data_change else 2
+    print("RESULT: exact reproduction (identical inputs, numbers within tolerance)")
+    return 0
+
+
 def _cmd_backtest(args: argparse.Namespace) -> int:
     cfg = load_config(args.config)
     if args.provider:
@@ -114,6 +130,15 @@ def build_parser() -> argparse.ArgumentParser:
     st.add_argument("--run-dir", help="write into exactly this folder (no timestamp)")
     st.add_argument("--no-plots", action="store_true")
     st.set_defaults(func=_cmd_study)
+
+    rp = sub.add_parser("reproduce", help="re-run a committed study and compare with its summary.json")
+    rp.add_argument("--summary", required=True)
+    rp.add_argument("--cache-dir", help="override the cache directory recorded in the config")
+    rp.add_argument("--refresh", action="store_true", help="re-download (implies loose tolerance; inputs will differ)")
+    rp.add_argument("--allow-data-change", action="store_true", help="exit 0 if only the input checksums differ")
+    rp.add_argument("--rtol", type=float, default=None)
+    rp.add_argument("--atol", type=float, default=None)
+    rp.set_defaults(func=_cmd_reproduce)
 
     ic = sub.add_parser("import-csv", help="validate a vendor CSV and store it for the csv / auto providers")
     ic.add_argument("--file", required=True, help="vendor CSV with a date column and OHLC(V) columns")

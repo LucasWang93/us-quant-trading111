@@ -89,7 +89,18 @@ usquant import-csv --file ~/Downloads/SPY.csv --symbol SPY --source "Vendor X ex
 ```
 
 Raw price data are not committed: Yahoo's terms restrict redistribution. Only
-checksums, provenance and derived results are.
+checksums, file hashes, provenance and derived results are.
+
+To check a committed study against a fresh run:
+
+```bash
+usquant reproduce --summary docs/results/spy_qqq_study/summary.json
+```
+
+The comparison is exact if your cache files have the SHA-256 hashes recorded in
+the report. A fresh Yahoo download only matches within a 1e-4 tolerance, because
+Yahoo's adjusted closes vary by about 1e-6 between downloads (see
+[`docs/data.md`](docs/data.md#reproducibility)).
 
 ## Quick start
 

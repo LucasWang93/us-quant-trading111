@@ -23,8 +23,10 @@ Limitations you should know:
 * `Close` is **split-adjusted, not the price that printed**. QQQ split 2:1 on
   2000-03-20, so 1999 QQQ closes in the file are half the traded price.
 * `Adj Close` history is rewritten each time a new dividend is paid (each
-  quarter, the whole history is rescaled by a tiny factor). Returns are unchanged,
-  but the series' checksum changes. Use the cached files to reproduce an exact run.
+  quarter, the whole history is rescaled by a tiny factor). Separately, repeated
+  downloads of the same history differ by about 1e-6 in `Adj Close`
+  (measured 2026-11-10: 5,710 of 6,955 SPY rows differed, by at most 0.000244 USD).
+  A re-download therefore never reproduces a data checksum. See *Reproducibility*.
 * Yahoo's terms restrict redistribution, so this repository does **not** commit
   raw price files. It commits checksums, provenance and derived results.
 
@@ -55,7 +57,33 @@ to its CSV:
 
 `usquant backtest` writes every symbol's provenance and quality report into the
 run's `metadata.json`. `usquant study` also prints them in `report.md`, along with a
-SHA-256 checksum of each validated input frame.
+data checksum of each validated input frame and the SHA-256 of the file it came
+from (`cache_sha256` for downloads, `original_sha256` for imported CSVs).
+
+## Reproducibility
+
+Downloaded data are written to the cache at 6 decimal places and then **re-read
+from that file** before use. A run that downloads and a later run served from the
+same cache file therefore use identical numbers. They also have identical data
+checksums. The sidecar keeps the file's SHA-256, and a warning is added to the
+provenance if the file changes afterwards.
+
+To check a committed run:
+
+```bash
+usquant reproduce --summary docs/results/spy_qqq_study/summary.json
+```
+
+| Inputs | What you can expect | Exit code |
+|---|---|---|
+| Cache files whose SHA-256 matches the committed provenance | Exact: identical checksums, every integer identical, every float within 1e-9 relative | 0 |
+| Cache files that differ, for example from another download | Reported as "input data differ". Numbers are still compared with a 1e-9 tolerance | 2, or 1 if numbers differ |
+| `--refresh` (re-download now) | Inputs differ by construction. Numbers are compared with a 1e-4 tolerance (observed drift 3.3e-6) | 0 within tolerance, else 1 |
+
+The raw Yahoo files are not committed, so anyone without the original cache
+files can only do the third kind of check. For exact, shareable reproduction,
+use licensed data imported with `usquant import-csv`. You can then keep or share
+those files under your own licence.
 
 `price_basis` values:
 

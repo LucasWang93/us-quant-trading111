@@ -14,7 +14,7 @@ from pathlib import Path
 import pandas as pd
 
 from usquant.data.base import DataLike, to_timestamp
-from usquant.data.provenance import Provenance, read_provenance, write_provenance
+from usquant.data.provenance import Provenance, file_sha256, read_provenance, write_provenance
 
 log = logging.getLogger(__name__)
 
@@ -39,6 +39,10 @@ def _from_yahoo(symbol: str, start: pd.Timestamp | None, end: pd.Timestamp | Non
     return s
 
 
+def _read_cache(path: Path) -> pd.Series:
+    return pd.read_csv(path, index_col="date", parse_dates=["date"])["close"].astype(float)
+
+
 def load_rate_percent(
     symbol: str = TBILL_SYMBOL,
     start: DataLike | None = None,
@@ -55,9 +59,13 @@ def load_rate_percent(
     fname = symbol.replace("^", "") + ".csv"
     cache = Path(cache_dir) / "yahoo" / fname
     if cache.exists() and not refresh:
-        ser = pd.read_csv(cache, index_col="date", parse_dates=["date"])["close"]
+        ser = _read_cache(cache)
         if (s is None or ser.index[0] - s <= pd.Timedelta(days=5)) and (e is None or e - ser.index[-1] <= pd.Timedelta(days=5)):
             prov = read_provenance(cache) or Provenance(symbol, "yahoo", "cache", "annualized_yield_percent")
+            current = file_sha256(cache)
+            if prov.cache_sha256 is not None and prov.cache_sha256 != current:
+                prov.notes.insert(0, "WARNING: cache file modified after download")
+            prov.cache_file, prov.cache_sha256 = str(cache), current
             prov.notes = [f"served from cache {cache}", *prov.notes]
             return ser.loc[s:e], prov
     errors = []
@@ -71,6 +79,8 @@ def load_rate_percent(
         )
         cache.parent.mkdir(parents=True, exist_ok=True)
         ser.rename("close").to_csv(cache, index_label="date", float_format="%.6f")
+        ser = _read_cache(cache).loc[s:e]  # canonical on-disk values (see DataStore)
+        prov.cache_file, prov.cache_sha256 = str(cache), file_sha256(cache)
         write_provenance(cache, prov)
         return ser, prov
     except Exception as exc:  # noqa: BLE001 - fall back to CSV

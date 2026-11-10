@@ -394,23 +394,28 @@ def format_report(sr: StudyResult, created_utc: str, git_commit: str | None) -> 
 
     # Provenance
     L += ["## Data provenance", "",
-          "| symbol | source | vendor | price basis | first bar | last bar | rows | retrieved (UTC) | checksum |",
-          "|---|---|---|---|---|---|---:|---|---|"]
+          "| symbol | source | vendor | price basis | first bar | last bar | rows | retrieved (UTC) | data checksum "
+          "| input file SHA-256 (first 16) |",
+          "|---|---|---|---|---|---|---:|---|---|---|"]
     for sym, p in sr.loaded.provenance.items():
         L.append(
             f"| {sym} | {p['source']} | {p['vendor']} | {p['price_basis']} | {p['first_date']} | {p['last_date']} "
-            f"| {p['rows']:,} | {p['retrieved_utc']} | `{sr.loaded.checksums[sym]}` |"
+            f"| {p['rows']:,} | {p['retrieved_utc']} | `{sr.loaded.checksums[sym]}` | `{_short_hash(p)}` |"
         )
     if sr.rf_provenance and "error" not in sr.rf_provenance:
         p = sr.rf_provenance
         L.append(f"| {p['symbol']} (risk-free) | {p['source']} | {p['vendor']} | {p['price_basis']} | {p['first_date']} "
-                 f"| {p['last_date']} | {p['rows']:,} | {p['retrieved_utc']} | |")
+                 f"| {p['last_date']} | {p['rows']:,} | {p['retrieved_utc']} | | `{_short_hash(p)}` |")
     L += ["", "Notes recorded with the data:", ""]
     for sym, p in sr.loaded.provenance.items():
         for n in p.get("notes", []):
             L.append(f"* {sym}: {n}")
-    L += ["", "The checksum is a SHA-256 prefix of the validated input frame (`usquant.data.frame_checksum`); "
-          "a re-download that changes any historical value changes it.", ""]
+    L += ["",
+          "*Data checksum* is a SHA-256 prefix of the validated frame the backtest used (`usquant.data.frame_checksum`). "
+          "*Input file SHA-256* identifies the exact cache or CSV file that frame was read from. Downloads are always "
+          "re-read from the cache file before use, so a run served from that file reproduces the checksum and every "
+          "number exactly. A fresh Yahoo download does **not**: Yahoo's adjusted closes vary by about 1e-6 between "
+          "requests, which changes the checksum and moves metrics by a few millionths (see *Reproduce*).", ""]
 
     L += ["### Data-quality checks", "",
           "| symbol | gaps > 5 days | open/close outside high-low | zero-volume bars | moves > 15% | stale bars "
@@ -484,11 +489,51 @@ def format_report(sr: StudyResult, created_utc: str, git_commit: str | None) -> 
         "usquant study --config configs/study_spy_qqq.yaml",
         "```",
         "",
+        "To check a committed run, re-run it and compare against its `summary.json`:",
+        "",
+        "```bash",
+        "usquant reproduce --summary docs/results/spy_qqq_study/summary.json",
+        "```",
+        "",
+        "* **Exact reproduction** needs input files whose SHA-256 matches the provenance table. The raw files are not "
+        "committed because Yahoo's terms restrict redistribution. With matching files every integer must match "
+        "exactly and every float must agree within a relative tolerance of 1e-9; the exit code is 0.",
+        "* **Re-downloaded data** (`--refresh`, or a cache with different hashes) cannot match the checksums. The "
+        "command reports that the inputs differ and compares the numbers with a tolerance of 1e-4. On 2026-11-10 "
+        "the largest observed drift was 3.3e-6.",
+        "",
         "Without network access, put vendor CSVs in `data/csv/` (see the README, *CSV import*) and the `auto` "
         "provider falls back to them; the provenance table then shows `csv` as the source.",
         "",
     ]
     return "\n".join(L)
+
+
+def _short_hash(prov: dict) -> str:
+    h = prov.get("cache_sha256") or prov.get("original_sha256")
+    return h[:16] if h else "n/a"
+
+
+def summary_dict(sr: StudyResult, created: str | None = None, commit: str | None = None) -> dict:
+    """Machine-readable record of a study (what ``summary.json`` contains), JSON-safe."""
+    return _jsonable({
+        "name": sr.config.name,
+        "created_utc": created,
+        "usquant_version": usquant.__version__,
+        "git_commit": commit,
+        "python": platform.python_version(),
+        "pandas": pd.__version__,
+        "numpy": np.__version__,
+        "config": sr.config.raw,
+        "metrics": sr.metrics,
+        "periods": sr.periods,
+        "cost_scenarios": sr.costs,
+        "data_provenance": sr.loaded.provenance,
+        "data_checksums": sr.loaded.checksums,
+        "data_quality": sr.loaded.quality,
+        "risk_free_provenance": sr.rf_provenance,
+        "risk_free_mean_annual": sr.rf_mean,
+    })
 
 
 def _plot(sr: StudyResult, out: Path) -> None:
@@ -535,25 +580,8 @@ def write_study(sr: StudyResult, out_root: str | Path | None = None, run_dir: st
     commit = _git_commit()
 
     (out / "report.md").write_text(format_report(sr, created, commit))
-    summary = {
-        "name": sr.config.name,
-        "created_utc": created,
-        "usquant_version": usquant.__version__,
-        "git_commit": commit,
-        "python": platform.python_version(),
-        "pandas": pd.__version__,
-        "numpy": np.__version__,
-        "config": sr.config.raw,
-        "metrics": sr.metrics,
-        "periods": sr.periods,
-        "cost_scenarios": sr.costs,
-        "data_provenance": sr.loaded.provenance,
-        "data_checksums": sr.loaded.checksums,
-        "data_quality": sr.loaded.quality,
-        "risk_free_provenance": sr.rf_provenance,
-        "risk_free_mean_annual": sr.rf_mean,
-    }
-    (out / "summary.json").write_text(json.dumps(_jsonable(summary), indent=2, default=str) + "\n")
+    summary = summary_dict(sr, created, commit)
+    (out / "summary.json").write_text(json.dumps(summary, indent=2, default=str) + "\n")
 
     curves = pd.DataFrame({label: r.equity_curve for label, r in sr.results.items()})
     curves.to_csv(out / "equity_curves.csv", index_label="date", float_format="%.2f")
