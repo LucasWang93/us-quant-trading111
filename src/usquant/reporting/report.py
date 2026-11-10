@@ -92,6 +92,7 @@ def write_run(
     data_checksums: dict[str, str] | None = None,
     plots: bool = True,
     run_name: str | None = None,
+    extra_metadata: dict | None = None,
 ) -> Path:
     """Persist everything needed to audit or reproduce a run; return its folder."""
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
@@ -121,8 +122,9 @@ def write_run(
         "pandas": pd.__version__,
         "numpy": np.__version__,
         "data_checksums": data_checksums or {},
+        **(extra_metadata or {}),
     }
-    (run_dir / "metadata.json").write_text(json.dumps(meta, indent=2))
+    (run_dir / "metadata.json").write_text(json.dumps(_jsonable(meta), indent=2, default=str))
 
     if plots:
         from usquant.reporting.plots import save_all_plots

@@ -14,7 +14,9 @@ from usquant.pipeline import run_experiment
 CONFIG_DIR = Path(__file__).resolve().parents[1] / "configs"
 
 
-@pytest.mark.parametrize("path", sorted(CONFIG_DIR.glob("*.yaml")), ids=lambda p: p.name)
+@pytest.mark.parametrize(
+    "path", sorted(p for p in CONFIG_DIR.glob("*.yaml") if not p.name.startswith("study_")), ids=lambda p: p.name
+)
 def test_example_configs_load(path):
     cfg = load_config(path)
     assert cfg.data.symbols == ["SPY", "QQQ"]

@@ -1,0 +1,68 @@
+# Real-data historical study: two strategies vs buy-and-hold on SPY and QQQ.
+# Run:  usquant study --config configs/study_spy_qqq.yaml
+# Writes results/spy_qqq_study_<UTC timestamp>/report.md (+ charts, summary.json, CSVs).
+name: spy_qqq_study
+
+data:
+  # auto = Yahoo Finance first; if it fails for a symbol, read data/csv/<SYMBOL>.csv.
+  provider: auto
+  provider_options:
+    sources:
+      - {provider: yahoo}
+      - {provider: csv, directory: data/csv, price_basis: auto}
+  symbols: [SPY, QQQ]
+  benchmark: SPY
+  start: 1999-03-10            # QQQ's first trading day; earlier bars are indicator warm-up only
+  evaluation_start: 2000-04-03 # first month with 252+ bars of history for every indicator
+  end: 2026-10-30              # pinned so the experiment is reproducible
+  cache_dir: data/cache
+  refresh: false
+  adjust: true                 # back-adjusted OHLC (total return incl. dividends)
+
+strategies:
+  - label: MA 50/200 crossover
+    name: ma_crossover
+    params: {fast: 50, slow: 200, ma_type: sma, rebalance: D}
+    sizing: equal_active
+  - label: 12-1 momentum rotation
+    name: momentum
+    params: {lookback: 252, skip: 21, threshold: 0.0, top_n: 1, rebalance: M}
+    sizing: equal_active
+
+benchmarks:
+  - {label: SPY buy & hold, weights: {SPY: 1.0}}
+  - {label: QQQ buy & hold, weights: {QQQ: 1.0}}
+  - {label: 50/50 SPY+QQQ, weights: {SPY: 0.5, QQQ: 0.5}, rebalance_threshold: 0.05}
+
+risk:
+  max_position_weight: 1.0
+  max_gross_exposure: 1.0
+  max_drawdown: null
+
+backtest:
+  initial_capital: 100000
+  execution_price: open        # signal at close t -> fill at open t+1
+  fractional_shares: false
+  rebalance_threshold: 0.05
+  min_trade_value: 100
+  commission:                  # approx. IBKR US Fixed tier
+    per_share: 0.005
+    min_per_order: 1.0
+    max_pct_of_value: 0.01
+  slippage:
+    bps: 2.0
+
+periods:
+  - {label: 2000-04 to 2009-12, start: 2000-04-03, end: 2009-12-31}
+  - {label: 2010 to 2019, start: 2010-01-01, end: 2019-12-31}
+  - {label: 2020 to 2026-10, start: 2020-01-01, end: 2026-10-30}
+
+cost_scenarios:
+  - {label: "frictionless (no commission, 0 bps)", commission: zero, slippage_bps: 0}
+  - {label: "default (IBKR Fixed + 2 bps)"}
+  - {label: "10 bps slippage", slippage_bps: 10}
+  - {label: "25 bps slippage", slippage_bps: 25}
+  - {label: "fill at next close instead of next open", execution_price: close}
+
+risk_free_symbol: "^IRX"       # 13-week T-bill yield (Yahoo) for excess-return Sharpe; null = skip
+output_dir: results

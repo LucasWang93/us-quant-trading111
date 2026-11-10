@@ -76,6 +76,19 @@ class MarketData:
             adjusted=self.adjusted,
         )
 
+    def between(self, start=None, end=None) -> "MarketData":
+        """Inclusive date slice (``None`` = open-ended)."""
+        s = None if start is None else pd.Timestamp(start)
+        e = None if end is None else pd.Timestamp(end)
+        return MarketData(
+            open=self.open.loc[s:e],
+            high=self.high.loc[s:e],
+            low=self.low.loc[s:e],
+            close=self.close.loc[s:e],
+            volume=self.volume.loc[s:e],
+            adjusted=self.adjusted,
+        )
+
     def truncate(self, end: pd.Timestamp) -> "MarketData":
         """Data available up to and including ``end`` (used in look-ahead tests)."""
         return MarketData(

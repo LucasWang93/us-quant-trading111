@@ -12,6 +12,11 @@ import pandas as pd
 #: OHLC plus a split- and dividend-adjusted close).
 OHLCV_COLUMNS: tuple[str, ...] = ("open", "high", "low", "close", "adj_close", "volume")
 
+#: Optional corporate-action columns kept when a provider supplies them (cash
+#: dividend per share on the ex-date; split ratio, 0 = no split). They are used for
+#: data-quality checks only - the backtest gets dividends through ``adj_close``.
+ACTION_COLUMNS: tuple[str, ...] = ("dividends", "splits")
+
 DataLike = str | date | datetime | pd.Timestamp
 
 
@@ -34,6 +39,7 @@ def validate_ohlcv(df: pd.DataFrame, symbol: str = "?") -> pd.DataFrame:
 
     Returns a cleaned copy: sorted, de-duplicated, tz-naive ``DatetimeIndex`` named
     ``date``, canonical columns as floats, rows with a missing close removed.
+    Optional :data:`ACTION_COLUMNS` are kept if present; other columns are dropped.
 
     Raises :class:`DataValidationError` on structural problems (missing columns,
     non-positive prices, high < low).
@@ -44,7 +50,8 @@ def validate_ohlcv(df: pd.DataFrame, symbol: str = "?") -> pd.DataFrame:
     if df.empty:
         raise DataValidationError(f"{symbol}: no rows")
 
-    out = df.loc[:, list(OHLCV_COLUMNS)].copy()
+    extra = [c for c in ACTION_COLUMNS if c in df.columns]
+    out = df.loc[:, list(OHLCV_COLUMNS) + extra].copy()
     idx = pd.DatetimeIndex(pd.to_datetime(out.index))
     if idx.tz is not None:
         idx = idx.tz_convert(None)
@@ -60,6 +67,8 @@ def validate_ohlcv(df: pd.DataFrame, symbol: str = "?") -> pd.DataFrame:
     for col in ("open", "high", "low"):
         out[col] = out[col].fillna(out["close"])
     out["volume"] = out["volume"].fillna(0.0)
+    for col in extra:
+        out[col] = out[col].fillna(0.0)
 
     prices = out[["open", "high", "low", "close", "adj_close"]].to_numpy()
     if not np.all(np.isfinite(prices)) or np.any(prices <= 0):
@@ -90,6 +99,20 @@ class DataProvider(ABC):
         self, symbols: list[str], start: DataLike | None = None, end: DataLike | None = None
     ) -> dict[str, pd.DataFrame]:
         return {s: self.fetch(s, start, end) for s in symbols}
+
+    def provenance(self, symbol: str, df: pd.DataFrame, start: DataLike | None = None, end: DataLike | None = None):
+        """Describe where ``df`` (just returned by :meth:`fetch`) came from."""
+        from usquant.data.provenance import Provenance
+
+        s, e = to_timestamp(start), to_timestamp(end)
+        return Provenance(
+            symbol=symbol,
+            source=self.name,
+            vendor=type(self).__name__,
+            price_basis="unknown",
+            requested_start=None if s is None else str(s.date()),
+            requested_end=None if e is None else str(e.date()),
+        ).describe_frame(df)
 
 
 def slice_dates(df: pd.DataFrame, start: DataLike | None, end: DataLike | None) -> pd.DataFrame:

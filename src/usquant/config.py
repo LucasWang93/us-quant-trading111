@@ -26,6 +26,9 @@ class DataConfig:
     benchmark: str | None = "SPY"
     start: str | None = None
     end: str | None = None
+    #: First bar of the backtest. Bars from ``start`` up to here are indicator
+    #: warm-up only (no trades, no P&L). ``None`` = backtest from ``start``.
+    evaluation_start: str | None = None
     cache_dir: str = "data/cache"
     refresh: bool = False
     adjust: bool = True
@@ -86,7 +89,8 @@ def config_from_dict(raw: dict[str, Any]) -> ExperimentConfig:
     )
     d = dict(raw["data"])
     _check_keys("data", d, set(DataConfig.__dataclass_fields__))
-    d["start"], d["end"] = _datestr(d.get("start")), _datestr(d.get("end"))
+    for key in ("start", "end", "evaluation_start"):
+        d[key] = _datestr(d.get(key))
     data = DataConfig(**d)
 
     s = dict(raw["strategy"])
