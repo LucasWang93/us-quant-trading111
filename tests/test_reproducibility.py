@@ -4,6 +4,7 @@ accurate reproducibility documentation, and result regression against committed 
 from __future__ import annotations
 
 import json
+import subprocess
 from pathlib import Path
 
 import numpy as np
@@ -193,3 +194,28 @@ def test_committed_spy_qqq_study_reproduces_exactly(monkeypatch):
     assert rep.inputs_match, rep.format()
     assert rep.numbers_match, rep.format()
     assert rep.max_abs_diff <= 1e-12, rep.format()
+
+
+# ------------------------- found while fixing: study artifacts were git-ignored
+RESULT_FILES = ("report.md", "summary.json", "equity.png", "drawdown.png", "VERIFICATION.md")
+
+
+def _git(*args: str) -> subprocess.CompletedProcess:
+    return subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
+
+
+@pytest.mark.skipif(not (ROOT / ".git").exists(), reason="not a git checkout")
+def test_committed_results_are_not_gitignored_but_raw_data_is():
+    """`results/` in .gitignore also matched docs/results/, so PR #2's report was never committed."""
+    for name in RESULT_FILES:
+        rel = f"docs/results/spy_qqq_study/{name}"
+        assert _git("check-ignore", "-q", rel).returncode == 1, f"{rel} is git-ignored"
+    assert _git("check-ignore", "-q", "results/run_1/metrics.json").returncode == 0
+    assert _git("check-ignore", "-q", "data/cache/yahoo/SPY.csv").returncode == 0
+
+
+@pytest.mark.skipif(not (ROOT / ".git").exists(), reason="not a git checkout")
+def test_committed_results_are_tracked_by_git():
+    tracked = set(_git("ls-files", "docs/results/spy_qqq_study").stdout.split())
+    missing = [n for n in RESULT_FILES if f"docs/results/spy_qqq_study/{n}" not in tracked]
+    assert not missing, f"not committed: {missing}"
