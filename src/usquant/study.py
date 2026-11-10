@@ -518,8 +518,8 @@ def _plot(sr: StudyResult, out: Path) -> None:
             ax.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:.0f}%"))
             _style(ax, "Drawdown from running peak")
             ax.axhline(0, color=GRID, linewidth=0.8)
-        ax.legend(frameon=False, fontsize=8, labelcolor=TEXT_MUTED, loc="upper left" if kind == "equity" else "lower left",
-                  ncol=2)
+        ax.legend(frameon=False, fontsize=8, labelcolor=TEXT_MUTED, loc="upper center",
+                  bbox_to_anchor=(0.5, -0.08), ncol=len(sr.results))
         fig.tight_layout()
         fig.savefig(out / f"{kind}.png", facecolor=SURFACE)
         plt.close(fig)
