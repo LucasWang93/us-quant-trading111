@@ -167,9 +167,41 @@ def test_engine_results_match_golden_snapshot():
     golden = json.loads(GOLDEN.read_text())
     rerun = json.loads(json.dumps(summary_dict(run_study(study_config_from_dict(STUDY_FOR_GOLDEN))), default=str))
     rep = compare_summaries(golden, rerun, rtol=1e-9, atol=1e-12)
-    assert rep.inputs_match, rep.format()
+    # Deliberately NOT asserting rep.inputs_match: the synthetic generator's np.exp/np.cumsum take
+    # different SIMD paths on different CPUs (e.g. a CI runner without AVX-512), so the generated
+    # prices - and therefore their checksum - can differ in the last bit. Observed in CI on PR #2 and
+    # reproduced locally with NPY_ENABLE_CPU_FEATURES="SSE SSE2 SSE3 SSSE3 SSE41 POPCNT SSE42": max
+    # difference 1.2e-10 USD. Real data come from fixed-precision files and are CPU-independent
+    # (see test_file_based_data_checksum_is_cpu_independent).
     assert rep.numbers_match, rep.format()
     assert rep.compared_values > 200
+
+
+_CHECKSUM_SCRIPT = (
+    "import sys; from usquant.data import CSVProvider, frame_checksum; "
+    "print(frame_checksum(CSVProvider(sys.argv[1]).fetch('SPY')))"
+)
+
+
+@pytest.mark.parametrize("features", ["SSE SSE2 SSE3 SSSE3 SSE41 POPCNT SSE42"])
+def test_file_based_data_checksum_is_cpu_independent(tmp_path, features):
+    """The reproducibility guarantee rests on file-based inputs hashing identically on any CPU,
+    unlike generated synthetic data (see the golden test)."""
+    SyntheticProvider(seed=4).fetch("SPY", "2010-01-01", "2014-12-31").to_csv(
+        tmp_path / "SPY.csv", index_label="date", float_format="%.6f"
+    )
+    import os
+    import sys
+
+    def run(env_extra):
+        env = {**os.environ, **env_extra}
+        out = subprocess.run([sys.executable, "-c", _CHECKSUM_SCRIPT, str(tmp_path)], capture_output=True,
+                             text=True, env=env, check=True)
+        return out.stdout.strip()
+
+    full = run({})
+    restricted = run({"NPY_ENABLE_CPU_FEATURES": features})
+    assert full == restricted and len(full) == 16
 
 
 def _local_inputs_match_committed() -> bool:

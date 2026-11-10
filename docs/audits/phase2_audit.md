@@ -59,7 +59,21 @@
 
 ## 6. 测试总数
 
-第 4 节的命令全部执行完毕。最后一次 `python -m pytest -rs` 的结果和 CI 状态见 PR #2 的提交记录和 CI 页面；提交时的本地结果为 **74 passed, 0 skipped, 0 failed（退出码 0）**，其中包括真实数据的精确复现测试。
+本地 `python -m pytest`：**75 passed, 0 skipped, 0 failed（退出码 0）**，其中包括真实数据的精确复现测试。下面三种配置都得到这个结果：
+
+- 本地 numpy 2.5.3 / pandas 3.0.5；
+- CI 使用的 numpy 2.4.6 / pandas 3.1.1；
+- 同样是 CI 的版本，但用 `NPY_ENABLE_CPU_FEATURES` 把 CPU 指令集限制到 SSE4.2。
+
+### CI 事件（提交 `4d6ed68`）
+
+`pytest (3.11)`（job 129739979740）失败在 `test_engine_results_match_golden_snapshot`。失败信息是合成数据的 checksum 不一致（SPY `75905819…` 对比 `adde6be2…`）。但比较的 268 个值全部在容差内，最大差 1.164e-10 美元，整数不一致 0 个。
+
+同一提交在 push 触发的那轮 CI 中，3.11 是通过的。本地装上 CI 的相同版本也能通过；只有用 `NPY_ENABLE_CPU_FEATURES="SSE SSE2 SSE3 SSSE3 SSE41 POPCNT SSE42"` 去掉 AVX-512 后，才能**逐字复现**这个失败。
+
+根因：合成数据生成器里的 `np.exp` / `np.cumsum` 在不同 CPU 上走不同的 SIMD 路径，结果会在最后一位上不同。golden 测试错误地要求合成输入逐位一致。
+
+修复：golden 测试只断言数值（容差 1e-9），不再断言合成输入的 checksum。同时新增 `test_file_based_data_checksum_is_cpu_independent`，证明从文件读入的数据（也就是真实数据走的路径）在受限指令集下 checksum 不变。这次修复没有改动任何产品代码。
 
 ## 7. 建议
 
