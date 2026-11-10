@@ -1,0 +1,52 @@
+# Moving-average crossover on SPY and QQQ, benchmarked against SPY buy & hold.
+# Run:  usquant backtest --config configs/ma_crossover_spy_qqq.yaml
+# Offline / no network:  add `--provider synthetic`
+name: ma_crossover_spy_qqq
+
+data:
+  provider: yahoo            # yahoo | csv | synthetic
+  symbols: [SPY, QQQ]
+  benchmark: SPY
+  start: 2005-01-01
+  end: 2024-12-31            # pin the end date so the experiment is reproducible
+  cache_dir: data/cache
+  refresh: false
+  adjust: true               # back-adjust OHLC for splits & dividends (total-return approximation)
+  provider_options: {}       # e.g. {directory: data/csv} for the csv provider
+
+strategy:
+  name: ma_crossover
+  params:
+    fast: 50
+    slow: 200
+    ma_type: sma
+    rebalance: D             # D = act on any crossover; W/M = check weekly/monthly
+
+portfolio:
+  sizing: equal_active       # split equity equally across symbols with an "on" signal
+
+risk:
+  max_position_weight: 1.0   # cap per symbol (fraction of equity)
+  max_gross_exposure: 1.0    # no leverage
+  max_drawdown: null         # e.g. 0.25 to enable the drawdown circuit breaker
+  drawdown_cooldown: 21
+
+backtest:
+  initial_capital: 100000
+  execution_price: open      # signals from close t are filled at the open of t+1
+  fractional_shares: false
+  rebalance_threshold: 0.05  # re-balance if a weight drifts >5 pts from target
+  min_trade_value: 100
+  commission:                # approx. IBKR US Fixed tier
+    per_share: 0.005
+    min_per_order: 1.0
+    max_pct_of_value: 0.01
+    bps: 0.0
+  slippage:
+    bps: 2.0
+
+risk_free_rate: 0.0          # annual, used in Sharpe/Sortino/alpha
+
+output:
+  dir: results
+  plots: true

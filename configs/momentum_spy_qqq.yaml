@@ -1,0 +1,48 @@
+# 12-1 absolute + relative momentum rotation between SPY and QQQ, checked monthly.
+# Run:  usquant backtest --config configs/momentum_spy_qqq.yaml
+name: momentum_spy_qqq
+
+data:
+  provider: yahoo
+  symbols: [SPY, QQQ]
+  benchmark: SPY
+  start: 2005-01-01
+  end: 2024-12-31
+  cache_dir: data/cache
+  adjust: true
+
+strategy:
+  name: momentum
+  params:
+    lookback: 252            # ~12 months
+    skip: 21                 # skip the most recent ~1 month
+    threshold: 0.0           # absolute momentum: only hold if trailing return > 0
+    top_n: 1                 # relative momentum: hold the stronger of the two
+    rebalance: M             # update on the first trading day of each month
+
+portfolio:
+  sizing: equal_active
+
+risk:
+  max_position_weight: 1.0
+  max_gross_exposure: 1.0
+  max_drawdown: null
+
+backtest:
+  initial_capital: 100000
+  execution_price: open
+  fractional_shares: false
+  rebalance_threshold: 0.05
+  min_trade_value: 100
+  commission:
+    per_share: 0.005
+    min_per_order: 1.0
+    max_pct_of_value: 0.01
+  slippage:
+    bps: 2.0
+
+risk_free_rate: 0.0
+
+output:
+  dir: results
+  plots: true
