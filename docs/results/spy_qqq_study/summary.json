@@ -1,0 +1,1109 @@
+{
+  "name": "spy_qqq_study",
+  "created_utc": "2026-11-10T09:17:19Z",
+  "usquant_version": "0.1.0",
+  "git_commit": "9ba20b94152f4e913c2ef2df03f24bf5fe63a4d4",
+  "python": "3.13.18",
+  "pandas": "3.0.5",
+  "numpy": "2.5.3",
+  "config": {
+    "name": "spy_qqq_study",
+    "data": {
+      "provider": "auto",
+      "provider_options": {
+        "sources": [
+          {
+            "provider": "yahoo"
+          },
+          {
+            "provider": "csv",
+            "directory": "data/csv",
+            "price_basis": "auto"
+          }
+        ]
+      },
+      "symbols": [
+        "SPY",
+        "QQQ"
+      ],
+      "benchmark": "SPY",
+      "start": "1999-03-10",
+      "evaluation_start": "2000-04-03",
+      "end": "2026-10-30",
+      "cache_dir": "data/cache",
+      "refresh": false,
+      "adjust": true
+    },
+    "strategies": [
+      {
+        "label": "MA 50/200 crossover",
+        "name": "ma_crossover",
+        "params": {
+          "fast": 50,
+          "slow": 200,
+          "ma_type": "sma",
+          "rebalance": "D"
+        },
+        "sizing": "equal_active"
+      },
+      {
+        "label": "12-1 momentum rotation",
+        "name": "momentum",
+        "params": {
+          "lookback": 252,
+          "skip": 21,
+          "threshold": 0.0,
+          "top_n": 1,
+          "rebalance": "M"
+        },
+        "sizing": "equal_active"
+      }
+    ],
+    "benchmarks": [
+      {
+        "label": "SPY buy & hold",
+        "weights": {
+          "SPY": 1.0
+        }
+      },
+      {
+        "label": "QQQ buy & hold",
+        "weights": {
+          "QQQ": 1.0
+        }
+      },
+      {
+        "label": "50/50 SPY+QQQ",
+        "weights": {
+          "SPY": 0.5,
+          "QQQ": 0.5
+        },
+        "rebalance_threshold": 0.05
+      }
+    ],
+    "risk": {
+      "max_position_weight": 1.0,
+      "max_gross_exposure": 1.0,
+      "max_drawdown": null
+    },
+    "backtest": {
+      "initial_capital": 100000,
+      "execution_price": "open",
+      "fractional_shares": false,
+      "rebalance_threshold": 0.05,
+      "min_trade_value": 100,
+      "commission": {
+        "per_share": 0.005,
+        "min_per_order": 1.0,
+        "max_pct_of_value": 0.01
+      },
+      "slippage": {
+        "bps": 2.0
+      }
+    },
+    "periods": [
+      {
+        "label": "2000-04 to 2009-12",
+        "start": "2000-04-03",
+        "end": "2009-12-31"
+      },
+      {
+        "label": "2010 to 2019",
+        "start": "2010-01-01",
+        "end": "2019-12-31"
+      },
+      {
+        "label": "2020 to 2026-10",
+        "start": "2020-01-01",
+        "end": "2026-10-30"
+      }
+    ],
+    "cost_scenarios": [
+      {
+        "label": "frictionless (no commission, 0 bps)",
+        "commission": "zero",
+        "slippage_bps": 0
+      },
+      {
+        "label": "default (IBKR Fixed + 2 bps)"
+      },
+      {
+        "label": "10 bps slippage",
+        "slippage_bps": 10
+      },
+      {
+        "label": "25 bps slippage",
+        "slippage_bps": 25
+      },
+      {
+        "label": "fill at next close instead of next open",
+        "execution_price": "close"
+      }
+    ],
+    "risk_free_symbol": "^IRX",
+    "output_dir": "results"
+  },
+  "metrics": {
+    "MA 50/200 crossover": {
+      "start": "2000-04-03",
+      "end": "2026-10-30",
+      "years": 26.523809523809526,
+      "final_equity": 1249175.4733521473,
+      "total_return": 11.491754733521473,
+      "cagr": 0.09987889757760304,
+      "volatility": 0.15831857567952595,
+      "sharpe_rf0": 0.6807316749912066,
+      "sharpe_tbill": 0.563169810954711,
+      "sortino_rf0": 0.9592978262532561,
+      "max_drawdown": -0.30686309227235053,
+      "max_drawdown_duration_bars": 767,
+      "calmar": 0.32548357913618825,
+      "round_trips": 29,
+      "fills": 94,
+      "fills_per_year": 3.5439856373429084,
+      "avg_exposure": 0.7785630797966583,
+      "annual_turnover": 1.7707784496688428,
+      "commission_paid": 754.61,
+      "slippage_paid": 3454.1620050512806
+    },
+    "12-1 momentum rotation": {
+      "start": "2000-04-03",
+      "end": "2026-10-30",
+      "years": 26.523809523809526,
+      "final_equity": 653372.8208447729,
+      "total_return": 5.533728208447728,
+      "cagr": 0.07332978680554114,
+      "volatility": 0.19441310820654895,
+      "sharpe_rf0": 0.4613633759349593,
+      "sharpe_tbill": 0.3656102427445922,
+      "sortino_rf0": 0.6473821661244231,
+      "max_drawdown": -0.5549993711403389,
+      "max_drawdown_duration_bars": 3295,
+      "calmar": 0.13212589170123354,
+      "round_trips": 40,
+      "fills": 81,
+      "fills_per_year": 3.0538599640933572,
+      "avg_exposure": 0.8062714622003575,
+      "annual_turnover": 3.5484550093821965,
+      "commission_paid": 460.6400000000001,
+      "slippage_paid": 3439.335116942062
+    },
+    "SPY buy & hold": {
+      "start": "2000-04-03",
+      "end": "2026-10-30",
+      "years": 26.523809523809526,
+      "final_equity": 794292.9473982196,
+      "total_return": 6.942929473982196,
+      "cagr": 0.08126227289872445,
+      "volatility": 0.19130310993170946,
+      "sharpe_rf0": 0.5041509478104118,
+      "sharpe_tbill": 0.4068711545619409,
+      "sortino_rf0": 0.7128332651056087,
+      "max_drawdown": -0.5517460329267079,
+      "max_drawdown_duration_bars": 1543,
+      "calmar": 0.14728202478896493,
+      "round_trips": 0,
+      "fills": 1,
+      "fills_per_year": 0.03770197486535009,
+      "avg_exposure": 0.9996144303753053,
+      "annual_turnover": 0.016869909099620654,
+      "commission_paid": 5.255,
+      "slippage_paid": 19.988699684621025
+    },
+    "QQQ buy & hold": {
+      "start": "2000-04-03",
+      "end": "2026-10-30",
+      "years": 26.523809523809526,
+      "final_equity": 791313.5070283025,
+      "total_return": 6.913135070283025,
+      "cagr": 0.08110908157023422,
+      "volatility": 0.26275987651000443,
+      "sharpe_rf0": 0.42802801931235646,
+      "sharpe_tbill": 0.3571920533570593,
+      "sortino_rf0": 0.6107405747732454,
+      "max_drawdown": -0.8117694263072448,
+      "max_drawdown_duration_bars": 3611,
+      "calmar": 0.09991640352753989,
+      "round_trips": 0,
+      "fills": 1,
+      "fills_per_year": 0.03770197486535009,
+      "avg_exposure": 0.9996751907311244,
+      "annual_turnover": 0.021251074338618534,
+      "commission_paid": 5.73,
+      "slippage_paid": 19.992459810373163
+    },
+    "50/50 SPY+QQQ": {
+      "start": "2000-04-03",
+      "end": "2026-10-30",
+      "years": 26.523809523809526,
+      "final_equity": 854215.709486569,
+      "total_return": 7.54215709486569,
+      "cagr": 0.08423129002844942,
+      "volatility": 0.21872256205574442,
+      "sharpe_rf0": 0.47910727797024905,
+      "sharpe_tbill": 0.394011882412256,
+      "sortino_rf0": 0.6815449109565342,
+      "max_drawdown": -0.6679328780744734,
+      "max_drawdown_duration_bars": 3262,
+      "calmar": 0.1261074170675242,
+      "round_trips": 0,
+      "fills": 30,
+      "fills_per_year": 1.1310592459605027,
+      "avg_exposure": 0.9993124690297495,
+      "annual_turnover": 0.05918363701302564,
+      "commission_paid": 33.49,
+      "slippage_paid": 66.03511792661214
+    }
+  },
+  "periods": {
+    "2000-04 to 2009-12": {
+      "MA 50/200 crossover": {
+        "start": "2000-04-03",
+        "end": "2009-12-31",
+        "cagr": 0.056693507768751816,
+        "sharpe_rf0": 0.45141619000380023,
+        "sharpe_tbill": 0.27594472499181955,
+        "max_drawdown": -0.26026056566605027,
+        "fills": 40
+      },
+      "12-1 momentum rotation": {
+        "start": "2000-04-03",
+        "end": "2009-12-31",
+        "cagr": -0.04315481763513562,
+        "sharpe_rf0": -0.11057180683045013,
+        "sharpe_tbill": -0.2343049977438743,
+        "max_drawdown": -0.5549993711403389,
+        "fills": 29
+      },
+      "SPY buy & hold": {
+        "start": "2000-04-03",
+        "end": "2009-12-31",
+        "cagr": -0.013955257220275463,
+        "sharpe_rf0": 0.048214054432541356,
+        "sharpe_tbill": -0.06637933788290142,
+        "max_drawdown": -0.5517460329267079,
+        "fills": 1
+      },
+      "QQQ buy & hold": {
+        "start": "2000-04-03",
+        "end": "2009-12-31",
+        "cagr": -0.07793549978273329,
+        "sharpe_rf0": -0.07117481094721481,
+        "sharpe_tbill": -0.14665693154921972,
+        "max_drawdown": -0.8117694263072448,
+        "fills": 1
+      },
+      "50/50 SPY+QQQ": {
+        "start": "2000-04-03",
+        "end": "2009-12-31",
+        "cagr": -0.04156707331200993,
+        "sharpe_rf0": -0.02609894427486549,
+        "sharpe_tbill": -0.1218496101587864,
+        "max_drawdown": -0.6679328780744734,
+        "fills": 18
+      }
+    },
+    "2010 to 2019": {
+      "MA 50/200 crossover": {
+        "start": "2010-01-04",
+        "end": "2019-12-31",
+        "cagr": 0.10479907459907456,
+        "sharpe_rf0": 0.7708550181496822,
+        "sharpe_tbill": 0.7322351000820505,
+        "max_drawdown": -0.23368288258809733,
+        "fills": 36
+      },
+      "12-1 momentum rotation": {
+        "start": "2010-01-04",
+        "end": "2019-12-31",
+        "cagr": 0.1445196886874136,
+        "sharpe_rf0": 0.8895409469270504,
+        "sharpe_tbill": 0.8566909379225662,
+        "max_drawdown": -0.22789260225532082,
+        "fills": 26
+      },
+      "SPY buy & hold": {
+        "start": "2010-01-04",
+        "end": "2019-12-31",
+        "cagr": 0.13269707402942266,
+        "sharpe_rf0": 0.9220711884436802,
+        "sharpe_tbill": 0.8845945966964032,
+        "max_drawdown": -0.19346711182260323,
+        "fills": 0
+      },
+      "QQQ buy & hold": {
+        "start": "2010-01-04",
+        "end": "2019-12-31",
+        "cagr": 0.1769667100795722,
+        "sharpe_rf0": 1.0311693977484429,
+        "sharpe_tbill": 0.999263491741674,
+        "max_drawdown": -0.2279531204799996,
+        "fills": 0
+      },
+      "50/50 SPY+QQQ": {
+        "start": "2010-01-04",
+        "end": "2019-12-31",
+        "cagr": 0.15558657799371844,
+        "sharpe_rf0": 0.9986598842142042,
+        "sharpe_tbill": 0.9636527433162084,
+        "max_drawdown": -0.21076173049039915,
+        "fills": 4
+      }
+    },
+    "2020 to 2026-10": {
+      "MA 50/200 crossover": {
+        "start": "2020-01-02",
+        "end": "2026-10-30",
+        "cagr": 0.15231884254565564,
+        "sharpe_rf0": 0.8293201375983628,
+        "sharpe_tbill": 0.6852461721813636,
+        "max_drawdown": -0.30686309227235053,
+        "fills": 18
+      },
+      "12-1 momentum rotation": {
+        "start": "2020-01-02",
+        "end": "2026-10-30",
+        "cagr": 0.14596532737793377,
+        "sharpe_rf0": 0.7484736883173396,
+        "sharpe_tbill": 0.6170312938729766,
+        "max_drawdown": -0.28540580255740355,
+        "fills": 26
+      },
+      "SPY buy & hold": {
+        "start": "2020-01-02",
+        "end": "2026-10-30",
+        "cagr": 0.14790684102682516,
+        "sharpe_rf0": 0.7913074895080988,
+        "sharpe_tbill": 0.6515631474648321,
+        "max_drawdown": -0.33713969764830287,
+        "fills": 0
+      },
+      "QQQ buy & hold": {
+        "start": "2020-01-02",
+        "end": "2026-10-30",
+        "cagr": 0.19278242827825243,
+        "sharpe_rf0": 0.8351052680939365,
+        "sharpe_tbill": 0.7226670870833759,
+        "max_drawdown": -0.3511779157260094,
+        "fills": 0
+      },
+      "50/50 SPY+QQQ": {
+        "start": "2020-01-02",
+        "end": "2026-10-30",
+        "cagr": 0.17284345051873928,
+        "sharpe_rf0": 0.8357833047949799,
+        "sharpe_tbill": 0.7088626106942215,
+        "max_drawdown": -0.3075766339174528,
+        "fills": 8
+      }
+    }
+  },
+  "cost_scenarios": {
+    "frictionless (no commission, 0 bps)": {
+      "MA 50/200 crossover": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 1269385.7086200896,
+        "total_return": 11.693857086200897,
+        "cagr": 0.100544628226934,
+        "volatility": 0.15829262500683713,
+        "sharpe_rf0": 0.6846409520324411,
+        "sharpe_tbill": 0.5670593975778486,
+        "sortino_rf0": 0.9649732323687195,
+        "max_drawdown": -0.3067520811387817,
+        "max_drawdown_duration_bars": 767,
+        "calmar": 0.32777162539101173,
+        "round_trips": 29,
+        "fills": 94,
+        "fills_per_year": 3.5439856373429084,
+        "avg_exposure": 0.7784939931344406,
+        "annual_turnover": 1.7693429801104135,
+        "commission_paid": 0.0,
+        "slippage_paid": 0.0
+      },
+      "12-1 momentum rotation": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 666834.5608663274,
+        "total_return": 5.668345608663274,
+        "cagr": 0.07415538426205592,
+        "volatility": 0.194382258253438,
+        "sharpe_rf0": 0.4653624908882741,
+        "sharpe_tbill": 0.3695936767216582,
+        "sortino_rf0": 0.6530836117175686,
+        "max_drawdown": -0.5546457616592417,
+        "max_drawdown_duration_bars": 3292,
+        "calmar": 0.13369864044433974,
+        "round_trips": 40,
+        "fills": 81,
+        "fills_per_year": 3.0538599640933572,
+        "avg_exposure": 0.8061824785545415,
+        "annual_turnover": 3.5504880454587764,
+        "commission_paid": 0.0,
+        "slippage_paid": 0.0
+      },
+      "SPY buy & hold": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 794318.1910979042,
+        "total_return": 6.9431819109790425,
+        "cagr": 0.08126356846849792,
+        "volatility": 0.19125774987380667,
+        "sharpe_rf0": 0.5042314987908311,
+        "sharpe_tbill": 0.4069286488615343,
+        "sortino_rf0": 0.712944384134598,
+        "max_drawdown": -0.5516262625731168,
+        "max_drawdown_duration_bars": 1543,
+        "calmar": 0.1473163516353187,
+        "round_trips": 0,
+        "fills": 1,
+        "fills_per_year": 0.03770197486535009,
+        "avg_exposure": 0.999423963245312,
+        "annual_turnover": 0.016864630454111816,
+        "commission_paid": 0.0,
+        "slippage_paid": 0.0
+      },
+      "QQQ buy & hold": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 791339.229488113,
+        "total_return": 6.913392294881129,
+        "cagr": 0.08111040649354528,
+        "volatility": 0.26263525646015945,
+        "sharpe_rf0": 0.42811171400773207,
+        "sharpe_tbill": 0.35724214015162215,
+        "sortino_rf0": 0.610851038844371,
+        "max_drawdown": -0.811566492171911,
+        "max_drawdown_duration_bars": 3611,
+        "calmar": 0.09994302041287823,
+        "round_trips": 0,
+        "fills": 1,
+        "fills_per_year": 0.03770197486535009,
+        "avg_exposure": 0.9992992545663976,
+        "annual_turnover": 0.021243744820495715,
+        "commission_paid": 0.0,
+        "slippage_paid": 0.0
+      },
+      "50/50 SPY+QQQ": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 854197.1988379399,
+        "total_return": 7.541971988379398,
+        "cagr": 0.08423040421015116,
+        "volatility": 0.2186365762381878,
+        "sharpe_rf0": 0.4792057313682981,
+        "sharpe_tbill": 0.39407695466215875,
+        "sortino_rf0": 0.6816973432160383,
+        "max_drawdown": -0.6676262723444547,
+        "max_drawdown_duration_bars": 3262,
+        "calmar": 0.12616400477225884,
+        "round_trips": 0,
+        "fills": 30,
+        "fills_per_year": 1.1310592459605027,
+        "avg_exposure": 0.9990004064203579,
+        "annual_turnover": 0.05806003160771641,
+        "commission_paid": 0.0,
+        "slippage_paid": 0.0
+      }
+    },
+    "default (IBKR Fixed + 2 bps)": {
+      "MA 50/200 crossover": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 1249175.4733521473,
+        "total_return": 11.491754733521473,
+        "cagr": 0.09987889757760304,
+        "volatility": 0.15831857567952595,
+        "sharpe_rf0": 0.6807316749912066,
+        "sharpe_tbill": 0.563169810954711,
+        "sortino_rf0": 0.9592978262532561,
+        "max_drawdown": -0.30686309227235053,
+        "max_drawdown_duration_bars": 767,
+        "calmar": 0.32548357913618825,
+        "round_trips": 29,
+        "fills": 94,
+        "fills_per_year": 3.5439856373429084,
+        "avg_exposure": 0.7785630797966583,
+        "annual_turnover": 1.7707784496688428,
+        "commission_paid": 754.61,
+        "slippage_paid": 3454.1620050512806
+      },
+      "12-1 momentum rotation": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 653372.8208447729,
+        "total_return": 5.533728208447728,
+        "cagr": 0.07332978680554114,
+        "volatility": 0.19441310820654895,
+        "sharpe_rf0": 0.4613633759349593,
+        "sharpe_tbill": 0.3656102427445922,
+        "sortino_rf0": 0.6473821661244231,
+        "max_drawdown": -0.5549993711403389,
+        "max_drawdown_duration_bars": 3295,
+        "calmar": 0.13212589170123354,
+        "round_trips": 40,
+        "fills": 81,
+        "fills_per_year": 3.0538599640933572,
+        "avg_exposure": 0.8062714622003575,
+        "annual_turnover": 3.5484550093821965,
+        "commission_paid": 460.6400000000001,
+        "slippage_paid": 3439.335116942062
+      },
+      "SPY buy & hold": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 794292.9473982196,
+        "total_return": 6.942929473982196,
+        "cagr": 0.08126227289872445,
+        "volatility": 0.19130310993170946,
+        "sharpe_rf0": 0.5041509478104118,
+        "sharpe_tbill": 0.4068711545619409,
+        "sortino_rf0": 0.7128332651056087,
+        "max_drawdown": -0.5517460329267079,
+        "max_drawdown_duration_bars": 1543,
+        "calmar": 0.14728202478896493,
+        "round_trips": 0,
+        "fills": 1,
+        "fills_per_year": 0.03770197486535009,
+        "avg_exposure": 0.9996144303753053,
+        "annual_turnover": 0.016869909099620654,
+        "commission_paid": 5.255,
+        "slippage_paid": 19.988699684621025
+      },
+      "QQQ buy & hold": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 791313.5070283025,
+        "total_return": 6.913135070283025,
+        "cagr": 0.08110908157023422,
+        "volatility": 0.26275987651000443,
+        "sharpe_rf0": 0.42802801931235646,
+        "sharpe_tbill": 0.3571920533570593,
+        "sortino_rf0": 0.6107405747732454,
+        "max_drawdown": -0.8117694263072448,
+        "max_drawdown_duration_bars": 3611,
+        "calmar": 0.09991640352753989,
+        "round_trips": 0,
+        "fills": 1,
+        "fills_per_year": 0.03770197486535009,
+        "avg_exposure": 0.9996751907311244,
+        "annual_turnover": 0.021251074338618534,
+        "commission_paid": 5.73,
+        "slippage_paid": 19.992459810373163
+      },
+      "50/50 SPY+QQQ": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 854215.709486569,
+        "total_return": 7.54215709486569,
+        "cagr": 0.08423129002844942,
+        "volatility": 0.21872256205574442,
+        "sharpe_rf0": 0.47910727797024905,
+        "sharpe_tbill": 0.394011882412256,
+        "sortino_rf0": 0.6815449109565342,
+        "max_drawdown": -0.6679328780744734,
+        "max_drawdown_duration_bars": 3262,
+        "calmar": 0.1261074170675242,
+        "round_trips": 0,
+        "fills": 30,
+        "fills_per_year": 1.1310592459605027,
+        "avg_exposure": 0.9993124690297495,
+        "annual_turnover": 0.05918363701302564,
+        "commission_paid": 33.49,
+        "slippage_paid": 66.03511792661214
+      }
+    },
+    "10 bps slippage": {
+      "MA 50/200 crossover": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 1191726.9902863293,
+        "total_return": 10.917269902863293,
+        "cagr": 0.09792832582389344,
+        "volatility": 0.15834628587979654,
+        "sharpe_rf0": 0.6694272396104155,
+        "sharpe_tbill": 0.5518870448292861,
+        "sortino_rf0": 0.9429094931282216,
+        "max_drawdown": -0.3068539773893869,
+        "max_drawdown_duration_bars": 767,
+        "calmar": 0.3191365699641098,
+        "round_trips": 29,
+        "fills": 94,
+        "fills_per_year": 3.5439856373429084,
+        "avg_exposure": 0.7785775632878874,
+        "annual_turnover": 1.77514040862479,
+        "commission_paid": 737.9450000000002,
+        "slippage_paid": 16704.816369853055
+      },
+      "12-1 momentum rotation": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 612218.4226527808,
+        "total_return": 5.122184226527808,
+        "cagr": 0.07070030180171094,
+        "volatility": 0.19441706235644757,
+        "sharpe_rf0": 0.4487382412994814,
+        "sharpe_tbill": 0.35298861556433636,
+        "sortino_rf0": 0.6293930458950431,
+        "max_drawdown": -0.5556435067942889,
+        "max_drawdown_duration_bars": 3347,
+        "calmar": 0.12724039953171937,
+        "round_trips": 40,
+        "fills": 81,
+        "fills_per_year": 3.0538599640933572,
+        "avg_exposure": 0.8061848945302434,
+        "annual_turnover": 3.541857325750087,
+        "commission_paid": 446.69000000000005,
+        "slippage_paid": 16424.1232670299
+      },
+      "SPY buy & hold": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 793552.466440966,
+        "total_return": 6.93552466440966,
+        "cagr": 0.08122425192664307,
+        "volatility": 0.1912778049794709,
+        "sharpe_rf0": 0.5040085025819285,
+        "sharpe_tbill": 0.40671580425643555,
+        "sortino_rf0": 0.7126226646203614,
+        "max_drawdown": -0.5516735141340738,
+        "max_drawdown_duration_bars": 1543,
+        "calmar": 0.1472324660250103,
+        "round_trips": 0,
+        "fills": 1,
+        "fills_per_year": 0.03770197486535009,
+        "avg_exposure": 0.9994991041123592,
+        "annual_turnover": 0.016882246497473156,
+        "commission_paid": 5.25,
+        "slippage_paid": 99.84840470432417
+      },
+      "QQQ buy & hold": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 790630.3665632416,
+        "total_return": 6.906303665632416,
+        "cagr": 0.08107387890812445,
+        "volatility": 0.2627263020003685,
+        "sharpe_rf0": 0.42792534862477266,
+        "sharpe_tbill": 0.35708031810137014,
+        "sortino_rf0": 0.6105866322894671,
+        "max_drawdown": -0.8117112996026248,
+        "max_drawdown_duration_bars": 3611,
+        "calmar": 0.09988019009691546,
+        "round_trips": 0,
+        "fills": 1,
+        "fills_per_year": 0.03770197486535009,
+        "avg_exposure": 0.9995674839684274,
+        "annual_turnover": 0.021267187163709688,
+        "commission_paid": 5.7250000000000005,
+        "slippage_paid": 99.87507191483857
+      },
+      "50/50 SPY+QQQ": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 852697.4303179523,
+        "total_return": 7.526974303179523,
+        "cagr": 0.0841585720505349,
+        "volatility": 0.21864522317349833,
+        "sharpe_rf0": 0.4788928989298724,
+        "sharpe_tbill": 0.3937673646149052,
+        "sortino_rf0": 0.6812226023166255,
+        "max_drawdown": -0.6679481854791307,
+        "max_drawdown_duration_bars": 3268,
+        "calmar": 0.12599565936415638,
+        "round_trips": 0,
+        "fills": 30,
+        "fills_per_year": 1.1310592459605027,
+        "avg_exposure": 0.9990911964593252,
+        "annual_turnover": 0.05921583223906615,
+        "commission_paid": 33.480000000000004,
+        "slippage_paid": 329.72363107576155
+      }
+    },
+    "25 bps slippage": {
+      "MA 50/200 crossover": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 1086783.23818627,
+        "total_return": 9.8678323818627,
+        "cagr": 0.094119188674052,
+        "volatility": 0.15852392283328795,
+        "sharpe_rf0": 0.646925479971609,
+        "sharpe_tbill": 0.5295190815288663,
+        "sortino_rf0": 0.9102715876946035,
+        "max_drawdown": -0.30688294160369145,
+        "max_drawdown_duration_bars": 769,
+        "calmar": 0.3066941035634281,
+        "round_trips": 29,
+        "fills": 92,
+        "fills_per_year": 3.468581687612208,
+        "avg_exposure": 0.7785589536158503,
+        "annual_turnover": 1.7840122635831661,
+        "commission_paid": 706.085,
+        "slippage_paid": 39158.715489043854
+      },
+      "12-1 momentum rotation": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 542255.8390210134,
+        "total_return": 4.422558390210133,
+        "cagr": 0.06581284430154555,
+        "volatility": 0.19445957000906697,
+        "sharpe_rf0": 0.4251493791682895,
+        "sharpe_tbill": 0.329423692809291,
+        "sortino_rf0": 0.5958150311990993,
+        "max_drawdown": -0.5569119963217932,
+        "max_drawdown_duration_bars": 3428,
+        "calmar": 0.11817458545733636,
+        "round_trips": 40,
+        "fills": 81,
+        "fills_per_year": 3.0538599640933572,
+        "avg_exposure": 0.8061742831033009,
+        "annual_turnover": 3.528857220403236,
+        "commission_paid": 422.21500000000003,
+        "slippage_paid": 37710.45768802616
+      },
+      "SPY buy & hold": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 792081.9267980353,
+        "total_return": 6.920819267980352,
+        "cagr": 0.08114864379742603,
+        "volatility": 0.19120863224784135,
+        "sharpe_rf0": 0.503755968957224,
+        "sharpe_tbill": 0.4064280087006269,
+        "sortino_rf0": 0.7122448768983902,
+        "max_drawdown": -0.5514785609816064,
+        "max_drawdown_duration_bars": 1543,
+        "calmar": 0.1471474134062169,
+        "round_trips": 0,
+        "fills": 1,
+        "fills_per_year": 0.03770197486535009,
+        "avg_exposure": 0.9991890991842814,
+        "annual_turnover": 0.016904432693020693,
+        "commission_paid": 5.24,
+        "slippage_paid": 249.14554316698775
+      },
+      "QQQ buy & hold": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 789274.4743851415,
+        "total_return": 6.892744743851416,
+        "cagr": 0.08100392213812091,
+        "volatility": 0.26260883024025095,
+        "sharpe_rf0": 0.4277533869185992,
+        "sharpe_tbill": 0.35687664261842444,
+        "sortino_rf0": 0.610322194199759,
+        "max_drawdown": -0.8115126133981606,
+        "max_drawdown_duration_bars": 3611,
+        "calmar": 0.09981843880272152,
+        "round_trips": 0,
+        "fills": 1,
+        "fills_per_year": 0.03770197486535009,
+        "avg_exposure": 0.9991994880682096,
+        "annual_turnover": 0.021296029539213772,
+        "commission_paid": 5.715,
+        "slippage_paid": 249.25154410187878
+      },
+      "50/50 SPY+QQQ": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 848846.2510790583,
+        "total_return": 7.488462510790583,
+        "cagr": 0.0839735594895048,
+        "volatility": 0.21873736564555435,
+        "sharpe_rf0": 0.4780030369764963,
+        "sharpe_tbill": 0.39291335966840396,
+        "sortino_rf0": 0.6799119926079584,
+        "max_drawdown": -0.6686595242034703,
+        "max_drawdown_duration_bars": 3268,
+        "calmar": 0.1255849299230979,
+        "round_trips": 0,
+        "fills": 30,
+        "fills_per_year": 1.1310592459605027,
+        "avg_exposure": 0.9993007923597389,
+        "annual_turnover": 0.05831438463625966,
+        "commission_paid": 33.480000000000004,
+        "slippage_paid": 808.0032150809502
+      }
+    },
+    "fill at next close instead of next open": {
+      "MA 50/200 crossover": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 1268097.0562792679,
+        "total_return": 11.680970562792679,
+        "cagr": 0.10050248515965898,
+        "volatility": 0.15820394936850077,
+        "sharpe_rf0": 0.6846933766707596,
+        "sharpe_tbill": 0.5670423675215863,
+        "sortino_rf0": 0.96484067702363,
+        "max_drawdown": -0.3068645511326583,
+        "max_drawdown_duration_bars": 767,
+        "calmar": 0.32751415824570596,
+        "round_trips": 29,
+        "fills": 94,
+        "fills_per_year": 3.5439856373429084,
+        "avg_exposure": 0.7785303163804419,
+        "annual_turnover": 1.7669799199430218,
+        "commission_paid": 750.66,
+        "slippage_paid": 3469.494065732255
+      },
+      "12-1 momentum rotation": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 804765.6753602519,
+        "total_return": 7.047656753602519,
+        "cagr": 0.08179638698817149,
+        "volatility": 0.19709925731284567,
+        "sharpe_rf0": 0.49735453459081846,
+        "sharpe_tbill": 0.4029115410807606,
+        "sortino_rf0": 0.7078243191630004,
+        "max_drawdown": -0.49878281386331624,
+        "max_drawdown_duration_bars": 2999,
+        "calmar": 0.16399199153358665,
+        "round_trips": 40,
+        "fills": 81,
+        "fills_per_year": 3.0538599640933572,
+        "avg_exposure": 0.8063360598536153,
+        "annual_turnover": 3.573208428131214,
+        "commission_paid": 543.8050000000001,
+        "slippage_paid": 4152.973498748335
+      },
+      "SPY buy & hold": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 802641.2247294291,
+        "total_return": 7.0264122472942905,
+        "cagr": 0.0816885819521096,
+        "volatility": 0.19122895600662543,
+        "sharpe_rf0": 0.5063344591638291,
+        "sharpe_tbill": 0.4090174607933395,
+        "sortino_rf0": 0.7159552953608208,
+        "max_drawdown": -0.5515815633221599,
+        "max_drawdown_duration_bars": 1543,
+        "calmar": 0.1480988259652872,
+        "round_trips": 0,
+        "fills": 1,
+        "fills_per_year": 0.03770197486535009,
+        "avg_exposure": 0.9993528833513834,
+        "annual_turnover": 0.01668668187644539,
+        "commission_paid": 5.3100000000000005,
+        "slippage_paid": 19.98161857079981
+      },
+      "QQQ buy & hold": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 804430.2486806571,
+        "total_return": 7.044302486806572,
+        "cagr": 0.08177938401402773,
+        "volatility": 0.2627523481712368,
+        "sharpe_rf0": 0.4303924806588895,
+        "sharpe_tbill": 0.3595547450028489,
+        "sortino_rf0": 0.6141605026921698,
+        "max_drawdown": -0.8117909042114129,
+        "max_drawdown_duration_bars": 3611,
+        "calmar": 0.10073946824209565,
+        "round_trips": 0,
+        "fills": 1,
+        "fills_per_year": 0.03770197486535009,
+        "avg_exposure": 0.9997149939976375,
+        "annual_turnover": 0.02090535685105138,
+        "commission_paid": 5.825,
+        "slippage_paid": 19.992954342996754
+      },
+      "50/50 SPY+QQQ": {
+        "start": "2000-04-03",
+        "end": "2026-10-30",
+        "years": 26.523809523809526,
+        "final_equity": 865290.3509703964,
+        "total_return": 7.652903509703965,
+        "cagr": 0.08475797807789998,
+        "volatility": 0.21861782711938169,
+        "sharpe_rf0": 0.4814548182057978,
+        "sharpe_tbill": 0.3963190409214456,
+        "sortino_rf0": 0.6849365733521708,
+        "max_drawdown": -0.6678843203355405,
+        "max_drawdown_duration_bars": 3268,
+        "calmar": 0.12690517728477013,
+        "round_trips": 0,
+        "fills": 30,
+        "fills_per_year": 1.1310592459605027,
+        "avg_exposure": 0.9989464221918074,
+        "annual_turnover": 0.05966417215869389,
+        "commission_paid": 33.565,
+        "slippage_paid": 67.44040760358769
+      }
+    }
+  },
+  "data_provenance": {
+    "SPY": {
+      "symbol": "SPY",
+      "source": "yahoo",
+      "vendor": "Yahoo Finance (query1/query2.finance.yahoo.com) via yfinance 1.8.0",
+      "price_basis": "split_adjusted_ohlc_with_total_return_adj_close",
+      "retrieved_utc": "2026-11-10T08:31:23Z",
+      "requested_start": "1999-03-10",
+      "requested_end": "2026-10-30",
+      "first_date": "1999-03-10",
+      "last_date": "2026-10-30",
+      "rows": 6955,
+      "has_dividends": true,
+      "has_splits": false,
+      "original_file": null,
+      "original_sha256": null,
+      "cache_file": "data/cache/yahoo/SPY.csv",
+      "cache_sha256": "bf74ffe799578f8165f3e6398de1833c3d78ded71f238358dae834431943d4fb",
+      "notes": [
+        "served from cache data/cache/yahoo/SPY.csv",
+        "close/open/high/low are split-adjusted, not dividend-adjusted",
+        "adj_close is split- and dividend-adjusted (Yahoo methodology, CRSP-style multiplier)",
+        "Yahoo revises adj_close history whenever a new distribution is paid",
+        "unofficial endpoint; no SLA; terms of use restrict redistribution of the raw data"
+      ]
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "source": "yahoo",
+      "vendor": "Yahoo Finance (query1/query2.finance.yahoo.com) via yfinance 1.8.0",
+      "price_basis": "split_adjusted_ohlc_with_total_return_adj_close",
+      "retrieved_utc": "2026-11-10T08:31:24Z",
+      "requested_start": "1999-03-10",
+      "requested_end": "2026-10-30",
+      "first_date": "1999-03-10",
+      "last_date": "2026-10-30",
+      "rows": 6955,
+      "has_dividends": true,
+      "has_splits": true,
+      "original_file": null,
+      "original_sha256": null,
+      "cache_file": "data/cache/yahoo/QQQ.csv",
+      "cache_sha256": "a00f630db3fd8f338f1c5159d17f87ad72f7981e53a297335ec5db9c22273f27",
+      "notes": [
+        "served from cache data/cache/yahoo/QQQ.csv",
+        "close/open/high/low are split-adjusted, not dividend-adjusted",
+        "adj_close is split- and dividend-adjusted (Yahoo methodology, CRSP-style multiplier)",
+        "Yahoo revises adj_close history whenever a new distribution is paid",
+        "unofficial endpoint; no SLA; terms of use restrict redistribution of the raw data"
+      ]
+    }
+  },
+  "data_checksums": {
+    "SPY": "57e1be96812c81af",
+    "QQQ": "f1c50600ac1624f8"
+  },
+  "data_quality": {
+    "SPY": {
+      "symbol": "SPY",
+      "rows": 6955,
+      "first_date": "1999-03-10",
+      "last_date": "2026-10-30",
+      "long_gaps": [
+        [
+          "2001-09-10",
+          "2001-09-17",
+          7
+        ]
+      ],
+      "ohlc_inconsistent": 0,
+      "zero_volume_bars": 0,
+      "extreme_moves": [],
+      "stale_bars": 0,
+      "adj_factor_decreases": 0,
+      "adj_factor_min": 0.6184058007202881,
+      "dividend_check": {
+        "dividend_events": 112,
+        "cagr_price_only": 0.06610440692813291,
+        "cagr_reconstructed_total_return": 0.08486447025202604,
+        "cagr_vendor_adj_close": 0.08483475163224208,
+        "annualized_gap_vendor_minus_reconstructed": -2.971861978395829e-05,
+        "max_daily_abs_diff": 0.00025166528809006383
+      },
+      "warnings": [
+        "1 gap(s) longer than 5 calendar days (expected only for market closures such as 2001-09-11)"
+      ]
+    },
+    "QQQ": {
+      "symbol": "QQQ",
+      "rows": 6955,
+      "first_date": "1999-03-10",
+      "last_date": "2026-10-30",
+      "long_gaps": [
+        [
+          "2001-09-10",
+          "2001-09-17",
+          7
+        ]
+      ],
+      "ohlc_inconsistent": 0,
+      "zero_volume_bars": 0,
+      "extreme_moves": [
+        [
+          "2001-01-03",
+          0.16842121620781358
+        ]
+      ],
+      "stale_bars": 0,
+      "adj_factor_decreases": 0,
+      "adj_factor_min": 0.8417573100557566,
+      "dividend_check": {
+        "dividend_events": 90,
+        "cagr_price_only": 0.09897379454703126,
+        "cagr_reconstructed_total_return": 0.10585572650881558,
+        "cagr_vendor_adj_close": 0.10585557257063316,
+        "annualized_gap_vendor_minus_reconstructed": -1.5393818242337431e-07,
+        "max_daily_abs_diff": 7.109059995069611e-05
+      },
+      "warnings": [
+        "1 gap(s) longer than 5 calendar days (expected only for market closures such as 2001-09-11)",
+        "1 daily move(s) beyond 15%; verify against a second source"
+      ]
+    }
+  },
+  "risk_free_provenance": {
+    "symbol": "^IRX",
+    "source": "yahoo",
+    "vendor": "Yahoo Finance via yfinance (CBOE 13-week T-bill index)",
+    "price_basis": "annualized_discount_yield_percent",
+    "retrieved_utc": "2026-11-10T08:31:24Z",
+    "requested_start": "1999-03-10",
+    "requested_end": "2026-10-30",
+    "first_date": "1999-03-10",
+    "last_date": "2026-10-30",
+    "rows": 6947,
+    "has_dividends": false,
+    "has_splits": false,
+    "original_file": null,
+    "original_sha256": null,
+    "cache_file": "data/cache/yahoo/IRX.csv",
+    "cache_sha256": "0aeade617417a3c7ac143c33eca347aba37bacc778c9bb2e4ae247a463916dba",
+    "notes": [
+      "served from cache data/cache/yahoo/IRX.csv"
+    ]
+  },
+  "risk_free_mean_annual": 0.018777606902347754
+}

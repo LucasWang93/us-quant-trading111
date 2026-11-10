@@ -48,6 +48,15 @@ def sharpe_ratio(returns: pd.Series, rf_annual: float = 0.0, periods_per_year: i
     return float(excess.mean() / sd * math.sqrt(periods_per_year))
 
 
+def excess_sharpe_ratio(returns: pd.Series, rf_per_bar: pd.Series, periods_per_year: int = TRADING_DAYS) -> float:
+    """Sharpe ratio of returns in excess of a time-varying per-bar risk-free rate."""
+    excess = (returns - rf_per_bar.reindex(returns.index).fillna(0.0)).dropna()
+    sd = excess.std(ddof=1)
+    if len(excess) < 2 or not np.isfinite(sd) or sd < 1e-12:
+        return 0.0
+    return float(excess.mean() / sd * math.sqrt(periods_per_year))
+
+
 def sortino_ratio(returns: pd.Series, rf_annual: float = 0.0, periods_per_year: int = TRADING_DAYS) -> float:
     excess = returns - _per_bar_rf(rf_annual, periods_per_year)
     downside = np.minimum(excess.to_numpy(), 0.0)

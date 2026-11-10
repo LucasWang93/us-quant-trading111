@@ -9,6 +9,7 @@ from pathlib import Path
 import pandas as pd
 
 from usquant.data.base import DataLike, DataProvider, slice_dates, to_timestamp, validate_ohlcv
+from usquant.data.provenance import Provenance, file_sha256, read_provenance, write_provenance
 
 log = logging.getLogger(__name__)
 
@@ -19,7 +20,14 @@ class DataStore:
     ``load`` serves from cache when the cached file covers the requested range
     (within ``tolerance_days`` at either end, to allow for weekends/holidays) and
     otherwise re-downloads the full requested range and overwrites the cache.
+    Every downloaded file gets a ``<SYMBOL>.provenance.json`` sidecar holding the
+    file's SHA-256. Callers always receive the data as re-read from disk, so a run
+    that downloads and a later run served from the same cache file see identical
+    numbers.
     """
+
+    #: Providers whose data is already on disk and is never copied into the cache.
+    LOCAL_PROVIDERS = frozenset({"csv"})
 
     def __init__(self, root: str | Path = "data/cache", tolerance_days: int = 5):
         self.root = Path(root)
@@ -48,6 +56,73 @@ class DataStore:
             return False
         return True
 
+    def load_with_provenance(
+        self,
+        provider: DataProvider,
+        symbol: str,
+        start: DataLike | None = None,
+        end: DataLike | None = None,
+        refresh: bool = False,
+    ) -> tuple[pd.DataFrame, Provenance]:
+        """Load ``symbol`` and return ``(bars, provenance)``.
+
+        * A :class:`~usquant.data.providers.FallbackProvider` is resolved source by
+          source; each source has its own cache folder.
+        * CSV sources are read directly (they are already local).
+        * Remote sources are served from cache when it covers the range, otherwise
+          downloaded and cached together with a provenance sidecar.
+        """
+        from usquant.data.providers import FallbackProvider
+
+        if isinstance(provider, FallbackProvider):
+            errors = []
+            for source in provider.sources:
+                try:
+                    df, prov = self.load_with_provenance(source, symbol, start, end, refresh)
+                except Exception as exc:  # noqa: BLE001 - try the next source
+                    errors.append(f"{source.name}: {type(exc).__name__}: {exc}")
+                    log.warning("%s: source %s failed (%s); trying next", symbol, source.name, exc)
+                    continue
+                prov.notes.extend(f"fallback: earlier source failed - {e}" for e in errors)
+                return df, prov
+            raise RuntimeError(f"all data sources failed for {symbol}: " + " | ".join(errors))
+
+        s, e = to_timestamp(start), to_timestamp(end)
+        if provider.name in self.LOCAL_PROVIDERS:
+            df = provider.fetch(symbol, s, e)
+            return df, provider.provenance(symbol, df, s, e)
+
+        path = self.path(provider, symbol)
+        cached = None if refresh else self.read(provider, symbol)
+        if cached is not None and self._covers(cached, s, e):
+            log.debug("cache hit %s/%s", provider.name, symbol)
+            df = slice_dates(cached, s, e)
+            prov = read_provenance(path) or Provenance(
+                symbol=symbol, source=provider.name, vendor=f"{provider.name} (cache without provenance record)",
+                price_basis="unknown", retrieved_utc="unknown",
+            )
+            current = file_sha256(path)
+            if prov.cache_sha256 is not None and prov.cache_sha256 != current:
+                log.warning("%s: cache file %s changed since it was downloaded", symbol, path)
+                prov.notes.insert(0, f"WARNING: cache file modified after download (recorded {prov.cache_sha256[:16]}, "
+                                     f"now {current[:16]})")
+            prov.cache_file, prov.cache_sha256 = str(path), current
+            prov.notes = [f"served from cache {path}", *prov.notes]
+            prov.describe_frame(df)
+            return df, prov
+        log.info("fetching %s from %s", symbol, provider.name)
+        fetched = provider.fetch(symbol, s, e)
+        prov = provider.provenance(symbol, fetched, s, e)
+        self.write(provider, symbol, fetched)
+        # Return what is on disk, not the in-memory download: the cache is written at
+        # fixed precision, so using the re-read frame makes the first run and every later
+        # cache-served run bit-identical (same data checksum, same results).
+        df = slice_dates(self.read(provider, symbol), s, e)
+        prov.describe_frame(df)
+        prov.cache_file, prov.cache_sha256 = str(path), file_sha256(path)
+        write_provenance(path, prov)
+        return df, prov
+
     def load(
         self,
         provider: DataProvider,
@@ -56,15 +131,7 @@ class DataStore:
         end: DataLike | None = None,
         refresh: bool = False,
     ) -> pd.DataFrame:
-        s, e = to_timestamp(start), to_timestamp(end)
-        cached = None if refresh else self.read(provider, symbol)
-        if cached is not None and self._covers(cached, s, e):
-            log.debug("cache hit %s/%s", provider.name, symbol)
-            return slice_dates(cached, s, e)
-        log.info("fetching %s from %s", symbol, provider.name)
-        df = provider.fetch(symbol, s, e)
-        self.write(provider, symbol, df)
-        return df
+        return self.load_with_provenance(provider, symbol, start, end, refresh)[0]
 
     def load_many(
         self,

@@ -1,0 +1,390 @@
+{
+  "name": "golden_synthetic",
+  "config": {
+    "name": "golden_synthetic",
+    "data": {
+      "provider": "synthetic",
+      "provider_options": {
+        "seed": 42
+      },
+      "symbols": [
+        "SPY",
+        "QQQ"
+      ],
+      "benchmark": "SPY",
+      "start": "2003-01-01",
+      "evaluation_start": "2004-01-02",
+      "end": "2014-12-31"
+    },
+    "strategies": [
+      {
+        "label": "MA 50/200",
+        "name": "ma_crossover",
+        "params": {
+          "fast": 50,
+          "slow": 200
+        }
+      },
+      {
+        "label": "Momentum 12-1",
+        "name": "momentum",
+        "params": {
+          "lookback": 252,
+          "skip": 21,
+          "top_n": 1,
+          "rebalance": "M"
+        }
+      }
+    ],
+    "benchmarks": [
+      {
+        "label": "SPY B&H",
+        "weights": {
+          "SPY": 1.0
+        }
+      },
+      {
+        "label": "50/50",
+        "weights": {
+          "SPY": 0.5,
+          "QQQ": 0.5
+        },
+        "rebalance_threshold": 0.05
+      }
+    ],
+    "periods": [
+      {
+        "label": "first",
+        "start": "2004-01-02",
+        "end": "2008-12-31"
+      }
+    ],
+    "cost_scenarios": [
+      {
+        "label": "25 bps",
+        "slippage_bps": 25
+      },
+      {
+        "label": "close",
+        "execution_price": "close"
+      }
+    ],
+    "risk_free_symbol": null
+  },
+  "metrics": {
+    "MA 50/200": {
+      "start": "2004-01-02",
+      "end": "2014-12-31",
+      "years": 11.380952380952381,
+      "final_equity": 256354.30993202998,
+      "total_return": 1.5635430993202997,
+      "cagr": 0.08623360545116898,
+      "volatility": 0.17526359222645665,
+      "sharpe_rf0": 0.5595786998000708,
+      "sharpe_tbill": null,
+      "sortino_rf0": 0.8189325486293794,
+      "max_drawdown": -0.39084570590788703,
+      "max_drawdown_duration_bars": 1564,
+      "calmar": 0.22063337052880957,
+      "round_trips": 16,
+      "fills": 63,
+      "fills_per_year": 5.535564853556485,
+      "avg_exposure": 0.8239188851125493,
+      "annual_turnover": 2.7845824886079726,
+      "commission_paid": 105.65999999999998,
+      "slippage_paid": 1125.4270000690049
+    },
+    "Momentum 12-1": {
+      "start": "2004-01-02",
+      "end": "2014-12-31",
+      "years": 11.380952380952381,
+      "final_equity": 205454.85979647347,
+      "total_return": 1.0545485979647347,
+      "cagr": 0.06531287269015751,
+      "volatility": 0.18959688253319595,
+      "sharpe_rf0": 0.42845979269759954,
+      "sharpe_tbill": null,
+      "sortino_rf0": 0.6233978929363633,
+      "max_drawdown": -0.4539926828997707,
+      "max_drawdown_duration_bars": 1413,
+      "calmar": 0.1438632717007398,
+      "round_trips": 25,
+      "fills": 51,
+      "fills_per_year": 4.481171548117155,
+      "avg_exposure": 0.8234881215027213,
+      "annual_turnover": 4.124688068549559,
+      "commission_paid": 111.3,
+      "slippage_paid": 1420.4781646125134
+    },
+    "SPY B&H": {
+      "start": "2004-01-02",
+      "end": "2014-12-31",
+      "years": 11.380952380952381,
+      "final_equity": 181593.22355997638,
+      "total_return": 0.8159322355997638,
+      "cagr": 0.05381912738625627,
+      "volatility": 0.18059678999421205,
+      "sharpe_rf0": 0.3805194960306377,
+      "sharpe_tbill": null,
+      "sortino_rf0": 0.5527792327142682,
+      "max_drawdown": -0.5895993562113995,
+      "max_drawdown_duration_bars": 1553,
+      "calmar": 0.09128084489793702,
+      "round_trips": 0,
+      "fills": 1,
+      "fills_per_year": 0.08786610878661087,
+      "avg_exposure": 0.9986278288162826,
+      "annual_turnover": 0.04426723197847386,
+      "commission_paid": 1.72,
+      "slippage_paid": 19.959636530674743
+    },
+    "50/50": {
+      "start": "2004-01-02",
+      "end": "2014-12-31",
+      "years": 11.380952380952381,
+      "final_equity": 193029.2907874511,
+      "total_return": 0.9302929078745108,
+      "cagr": 0.0594893620721344,
+      "volatility": 0.15085127302777077,
+      "sharpe_rf0": 0.4584967712448857,
+      "sharpe_tbill": null,
+      "sortino_rf0": 0.6651968958612077,
+      "max_drawdown": -0.4244940766919738,
+      "max_drawdown_duration_bars": 1568,
+      "calmar": 0.14014179546562142,
+      "round_trips": 0,
+      "fills": 52,
+      "fills_per_year": 4.569037656903766,
+      "avg_exposure": 0.997285956045475,
+      "annual_turnover": 0.29126653767944033,
+      "commission_paid": 52.345,
+      "slippage_paid": 107.58549643635226
+    }
+  },
+  "periods": {
+    "first": {
+      "MA 50/200": {
+        "start": "2004-01-02",
+        "end": "2008-12-31",
+        "cagr": 0.19691383062768408,
+        "sharpe_rf0": 1.1737466206558285,
+        "sharpe_tbill": null,
+        "max_drawdown": -0.24754860135607737,
+        "fills": 35
+      },
+      "Momentum 12-1": {
+        "start": "2004-01-02",
+        "end": "2008-12-31",
+        "cagr": 0.1604058412294278,
+        "sharpe_rf0": 0.8743563151489534,
+        "sharpe_tbill": null,
+        "max_drawdown": -0.2237279765551402,
+        "fills": 25
+      },
+      "SPY B&H": {
+        "start": "2004-01-02",
+        "end": "2008-12-31",
+        "cagr": 0.2570397749240223,
+        "sharpe_rf0": 1.3843384553282065,
+        "sharpe_tbill": null,
+        "max_drawdown": -0.2234142039996515,
+        "fills": 1
+      },
+      "50/50": {
+        "start": "2004-01-02",
+        "end": "2008-12-31",
+        "cagr": 0.1845930700769205,
+        "sharpe_rf0": 1.2232565472849337,
+        "sharpe_tbill": null,
+        "max_drawdown": -0.15543020284101794,
+        "fills": 18
+      }
+    }
+  },
+  "cost_scenarios": {
+    "25 bps": {
+      "MA 50/200": {
+        "start": "2004-01-02",
+        "end": "2014-12-31",
+        "years": 11.380952380952381,
+        "final_equity": 237617.3861586859,
+        "total_return": 1.3761738615868588,
+        "cagr": 0.07901369305180528,
+        "volatility": 0.17526566728120274,
+        "sharpe_rf0": 0.5215141779654938,
+        "sharpe_tbill": null,
+        "sortino_rf0": 0.7617693327127759,
+        "max_drawdown": -0.40339307598994634,
+        "max_drawdown_duration_bars": 1568,
+        "calmar": 0.19587270519679054,
+        "round_trips": 16,
+        "fills": 63,
+        "fills_per_year": 5.535564853556485,
+        "avg_exposure": 0.823945674674605,
+        "annual_turnover": 2.792837247518923,
+        "commission_paid": 102.53999999999999,
+        "slippage_paid": 13479.388657905525
+      },
+      "Momentum 12-1": {
+        "start": "2004-01-02",
+        "end": "2014-12-31",
+        "years": 11.380952380952381,
+        "final_equity": 182477.0791424111,
+        "total_return": 0.8247707914241109,
+        "cagr": 0.05426881095426417,
+        "volatility": 0.18929626997581722,
+        "sharpe_rf0": 0.373779248244006,
+        "sharpe_tbill": null,
+        "sortino_rf0": 0.5422449494882893,
+        "max_drawdown": -0.471163532640934,
+        "max_drawdown_duration_bars": 1553,
+        "calmar": 0.11518041443080344,
+        "round_trips": 25,
+        "fills": 51,
+        "fills_per_year": 4.481171548117155,
+        "avg_exposure": 0.8229630672705487,
+        "annual_turnover": 4.155805873817512,
+        "commission_paid": 104.91999999999999,
+        "slippage_paid": 16621.08313444274
+      },
+      "SPY B&H": {
+        "start": "2004-01-02",
+        "end": "2014-12-31",
+        "years": 11.380952380952381,
+        "final_equity": 181127.1653917926,
+        "total_return": 0.8112716539179261,
+        "cagr": 0.05358120416543288,
+        "volatility": 0.1805095306515788,
+        "sharpe_rf0": 0.3793655485953308,
+        "sharpe_tbill": null,
+        "sortino_rf0": 0.5510243338122325,
+        "max_drawdown": -0.5894932774271535,
+        "max_drawdown_duration_bars": 1553,
+        "calmar": 0.09089366446940383,
+        "round_trips": 0,
+        "fills": 1,
+        "fills_per_year": 0.08786610878661087,
+        "avg_exposure": 0.9982760191924742,
+        "annual_turnover": 0.04435512632366126,
+        "commission_paid": 1.715,
+        "slippage_paid": 248.77017914321107
+      },
+      "50/50": {
+        "start": "2004-01-02",
+        "end": "2014-12-31",
+        "years": 11.380952380952381,
+        "final_equity": 189323.53399288084,
+        "total_return": 0.8932353399288084,
+        "cagr": 0.05768632607844926,
+        "volatility": 0.1507985855318865,
+        "sharpe_rf0": 0.4473107042070067,
+        "sharpe_tbill": null,
+        "sortino_rf0": 0.6480232524844097,
+        "max_drawdown": -0.429576287642467,
+        "max_drawdown_duration_bars": 1568,
+        "calmar": 0.13428656966853145,
+        "round_trips": 0,
+        "fills": 50,
+        "fills_per_year": 4.393305439330544,
+        "avg_exposure": 0.9972618414149269,
+        "annual_turnover": 0.2780125863858834,
+        "commission_paid": 50.34,
+        "slippage_paid": 1278.6512391978868
+      }
+    },
+    "close": {
+      "MA 50/200": {
+        "start": "2004-01-02",
+        "end": "2014-12-31",
+        "years": 11.380952380952381,
+        "final_equity": 262634.11780822184,
+        "total_return": 1.6263411780822183,
+        "cagr": 0.08854591698196113,
+        "volatility": 0.1748610354967099,
+        "sharpe_rf0": 0.5726246528262475,
+        "sharpe_tbill": null,
+        "sortino_rf0": 0.8395504159880771,
+        "max_drawdown": -0.3667620606287839,
+        "max_drawdown_duration_bars": 1568,
+        "calmar": 0.24142605380217438,
+        "round_trips": 16,
+        "fills": 63,
+        "fills_per_year": 5.535564853556485,
+        "avg_exposure": 0.8239457777624345,
+        "annual_turnover": 2.7701173251773143,
+        "commission_paid": 108.07000000000001,
+        "slippage_paid": 1160.8158488936742
+      },
+      "Momentum 12-1": {
+        "start": "2004-01-02",
+        "end": "2014-12-31",
+        "years": 11.380952380952381,
+        "final_equity": 174429.66295754348,
+        "total_return": 0.7442966295754347,
+        "cagr": 0.05009898625924114,
+        "volatility": 0.1892602829239294,
+        "sharpe_rf0": 0.3528677274273039,
+        "sharpe_tbill": null,
+        "sortino_rf0": 0.5117357104402719,
+        "max_drawdown": -0.43644231205697426,
+        "max_drawdown_duration_bars": 1414,
+        "calmar": 0.11478948047709246,
+        "round_trips": 25,
+        "fills": 51,
+        "fills_per_year": 4.481171548117155,
+        "avg_exposure": 0.8233492533806351,
+        "annual_turnover": 4.191185765773636,
+        "commission_paid": 99.7,
+        "slippage_paid": 1256.1148339068043
+      },
+      "SPY B&H": {
+        "start": "2004-01-02",
+        "end": "2014-12-31",
+        "years": 11.380952380952381,
+        "final_equity": 177452.2739760197,
+        "total_return": 0.774522739760197,
+        "cagr": 0.05168535971217336,
+        "volatility": 0.18038856659584637,
+        "sharpe_rf0": 0.3695133785840962,
+        "sharpe_tbill": null,
+        "sortino_rf0": 0.5364195258817738,
+        "max_drawdown": -0.5894554886399772,
+        "max_drawdown_duration_bars": 1553,
+        "calmar": 0.08768322750106976,
+        "round_trips": 0,
+        "fills": 1,
+        "fills_per_year": 0.08786610878661087,
+        "avg_exposure": 0.9981507306966686,
+        "annual_turnover": 0.04526643712698687,
+        "commission_paid": 1.68,
+        "slippage_paid": 19.944055768957696
+      },
+      "50/50": {
+        "start": "2004-01-02",
+        "end": "2014-12-31",
+        "years": 11.380952380952381,
+        "final_equity": 191533.31512293933,
+        "total_return": 0.9153331512293932,
+        "cagr": 0.058765327638453435,
+        "volatility": 0.15091655962959635,
+        "sharpe_rf0": 0.45383258716135894,
+        "sharpe_tbill": null,
+        "sortino_rf0": 0.6582647453447914,
+        "max_drawdown": -0.4233794280257456,
+        "max_drawdown_duration_bars": 1568,
+        "calmar": 0.1388006212594721,
+        "round_trips": 0,
+        "fills": 56,
+        "fills_per_year": 4.920502092050209,
+        "avg_exposure": 0.9975541190471203,
+        "annual_turnover": 0.31331021993880576,
+        "commission_paid": 56.33,
+        "slippage_paid": 114.84199413660983
+      }
+    }
+  },
+  "data_checksums": {
+    "SPY": "adde6be2a4fbcd17",
+    "QQQ": "85a28662babd7adb"
+  }
+}

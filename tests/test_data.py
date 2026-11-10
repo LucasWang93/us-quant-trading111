@@ -126,5 +126,6 @@ def test_yahoo_provider_normalizes_yfinance_output(monkeypatch):
     out = YahooProvider().fetch("SPY", "2024-01-01", "2024-01-03")
     assert list(out.columns) == ["open", "high", "low", "close", "adj_close", "volume"]
     assert captured["auto_adjust"] is False
+    assert captured["actions"] is True  # dividends/splits are fetched for the quality cross-check
     assert captured["end"] == "2024-01-04"  # inclusive end -> yfinance exclusive end
     assert len(out) == 3

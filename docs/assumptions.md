@@ -25,8 +25,10 @@ changes results.
 
 ## 2. Adjusted prices, splits and dividends
 
-* Providers return raw `open/high/low/close` and a split- and dividend-adjusted
-  `adj_close`. With `adjust: true` (default) every price column is multiplied by
+* Providers return `open/high/low/close` and a split- and dividend-adjusted
+  `adj_close`. For Yahoo, OHLC are already **split-adjusted** but not
+  dividend-adjusted. Each series' basis is recorded in its provenance (see
+  [`data.md`](data.md)). With `adjust: true` (default) every price column is multiplied by
   `adj_close / close` (the vendor's cumulative adjustment factor), giving
   back-adjusted OHLC.
 * **Effect:** returns approximate *total return with dividends reinvested on the
@@ -76,11 +78,19 @@ changes results.
 * **Cash earns 0%.** Set `risk_free_rate` to make Sharpe/Sortino/alpha excess-return
   based. The cash balance itself still earns nothing.
 
-## 5. Benchmark
+## 5. Benchmarks and evaluation window
 
-* Frictionless buy-and-hold of `data.benchmark` (default SPY), bought at the open of
-  bar 1, the first bar on which the strategy could trade. It uses the same adjusted
-  (total-return) prices.
+* `usquant backtest`: frictionless buy-and-hold of `data.benchmark` (default SPY),
+  bought at the open of bar 1, the first bar on which the strategy could trade. It
+  uses the same adjusted (total-return) prices.
+* `usquant study`: buy-and-hold portfolios (`backtest.benchmarks.static_portfolio`)
+  run **through the same engine**. They pay the same commission and slippage, use
+  integer shares and enter on the same bar as the strategies. A mix such as 50/50
+  SPY/QQQ re-balances only when a weight drifts past its `rebalance_threshold`.
+* `data.evaluation_start`: bars from `data.start` up to this date are indicator
+  warm-up only. Signals are computed on the full history, then the backtest (and
+  every benchmark) starts at `evaluation_start`. Without this, a 200-day or 12-month
+  strategy would sit in cash for its first year while the benchmark is invested.
 
 ## 6. Metrics
 
@@ -98,11 +108,16 @@ changes results.
   The information ratio uses daily active returns.
 * Turnover = total traded notional / average equity / years.
 
-## 7. Known limitations (Phase 1)
+## 7. Known limitations
 
 * Survivorship bias is not an issue for SPY/QQQ, but it **will** be once single
   stocks are added. That needs point-in-time constituents.
 * No borrow costs, short selling, futures roll, FX, taxes or corporate-action cash
   flows beyond what the adjusted prices contain.
+* Daily bars only: fills at the open/close print with fixed slippage, no partial
+  fills, no market-impact or spread model, no intraday stops.
+* Uninvested cash earns 0%. The study reports Sharpe both with rf = 0 and in excess
+  of the 13-week T-bill.
+* Free Yahoo data is unofficial and revised retroactively; see [`data.md`](data.md).
 * The synthetic data provider exists only for tests and offline demos. Its numbers
   carry no information about real markets.

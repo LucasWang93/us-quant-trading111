@@ -7,7 +7,8 @@
  ┌──────────── usquant.pipeline.run_experiment ────────────────────────────┐
  │                                                                          │
  │  data.providers ──► data.store (CSV cache) ──► data.panel.MarketData    │
- │  (yahoo/csv/synthetic)                         (adjusted, aligned)       │
+ │  (yahoo/csv/auto/     + provenance sidecars    (adjusted, aligned)       │
+ │   synthetic)          + data.quality checks                             │
  │                                                    │                     │
  │                                  strategies.Strategy.generate_signals    │
  │                                                    │  signals [0,1]      │
@@ -24,6 +25,9 @@
  │                                ▼                ▼                        │
  │                    reporting (CSV, JSON, Markdown, PNG, metadata)        │
  └──────────────────────────────────────────────────────────────────────────┘
+
+ usquant.study ── runs several strategies + engine-run buy-and-hold benchmarks
+                  on one dataset; sub-periods, cost scenarios, Markdown report
 
  broker/  ── interface only (paper-trading-only design; no connectivity in Phase 1)
 ```
